@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Tokens do tema neo-brutalista (mesmos valores de financeiro/app/globals.css,
+ * ver financeiro/DESIGN_SYSTEM.md). Um valor por modo; o modo segue o sistema.
+ * Os componentes usam só as classes geradas no tailwind.config.js
+ * (bg-surface, border-ink, text-income...), sem prefixo dark:.
+ * Tokens que no web apontam para outro (band, danger) estão com o valor
+ * literal de cada modo.
+ */
+:root {
+  /* Superfícies e texto */
+  --background: #f7f7f5;
+  --surface: #ffffff;
+  --surface-muted: #efefec;
+  --foreground: #111111;
+  --muted-foreground: #52525b;
+
+  /* Contorno pesado e sombra dura (o "adesivo") */
+  --ink: #111111;
+  /* Divisórias finas entre itens */
+  --border-custom: #e4e4df;
+
+  /* Faixa de cabeçalho: = surface-muted / foreground, sem inverter */
+  --band: #efefec;
+  --band-foreground: #111111;
+
+  /* Destaques (com moderação; ai só para IA) */
+  --highlight: #d1157f;
+  --highlight-foreground: #ffffff;
+  --ai: #6c3cf0;
+  --ai-foreground: #ffffff;
+
+  /* Semânticas */
+  --income: #047857;
+  --income-foreground: #ffffff;
+  --expense: #be123c;
+  --expense-foreground: #ffffff;
+  --warning: #b45309;
+  --warning-foreground: #ffffff;
+
+  /* Botão de perigo: preenchido (= expense) no claro */
+  --danger: #be123c;
+  --danger-foreground: #ffffff;
+  --danger-border: #111111;
+
+  /* Fundo escurecido atrás de diálogos */
+  --overlay: rgba(17, 17, 17, 0.5);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #111111;
+    --surface: #1c1c1c;
+    --surface-muted: #262626;
+    --foreground: #f7f7f5;
+    --muted-foreground: #a1a1aa;
+
+    /* Claro no escuro: a sombra continua visível sobre o fundo preto */
+    --ink: #f7f7f5;
+    --border-custom: #2e2e2e;
+
+    --band: #262626;
+    --band-foreground: #f7f7f5;
+
+    --highlight: #ff5cb4;
+    --highlight-foreground: #111111;
+    --ai: #a98bff;
+    --ai-foreground: #111111;
+
+    --income: #34d399;
+    --income-foreground: #111111;
+    --expense: #fb7185;
+    --expense-foreground: #111111;
+    --warning: #fbbf24;
+    --warning-foreground: #111111;
+
+    /* Superfície com texto e contorno expense (rosa chapado pesa no escuro) */
+    --danger: #1c1c1c;
+    --danger-foreground: #fb7185;
+    --danger-border: #fb7185;
+
+    --overlay: rgba(0, 0, 0, 0.7);
+  }
+}
