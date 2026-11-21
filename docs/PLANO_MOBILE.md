@@ -68,8 +68,8 @@ arquivos, como testar e uma sugestão de commit.
 
 ### Etapa 2: login com Google
 
-- [ ] **2a** Conta Expo, `eas init`, `eas.json` (perfil `development`), primeira development build Android
-- [ ] **2b** SHA-1 (`eas credentials`) → client Android no Google Cloud (mesmo projeto do `GOOGLE_CLIENT_ID`) → `GOOGLE_MOBILE_CLIENT_IDS` no backend
+- [x] **2a** Conta Expo, `eas init`, `eas.json` (perfil `development`), primeira development build Android
+- [x] **2b** SHA-1 (`eas credentials`) → client Android no Google Cloud (mesmo projeto do `GOOGLE_CLIENT_ID`) → `GOOGLE_MOBILE_CLIENT_IDS` no backend
 - [ ] **2c** Pacotes: `@react-native-google-signin/google-signin`, `expo-secure-store`, `expo-dev-client` (+ plugin no `app.json`)
 - [ ] **2d** Rede local: confirmar HTTP para o IP do PC; se bloqueado, `expo-build-properties` (`usesCleartextTraffic`) só em desenvolvimento
 - [ ] **2e** `src/lib/session.ts`, `src/lib/api.ts`, Context de sessão
