@@ -34,13 +34,21 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.939278027822-8jfkkerhmcn1rf38omehu78bli7tl1nm"
+        }
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
     },
     "extra": {
+      "googleWebClientId": "939278027822-5ea9qv2fhls04rn7ap287uc7ihn8p1b7.apps.googleusercontent.com",
       "router": {
         "asyncRoutes": {
           "web": true
