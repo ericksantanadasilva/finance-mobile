@@ -1,4 +1,10 @@
 import { Link } from 'expo-router';
+import {
+  CircleArrowDown,
+  CircleArrowUp,
+  Target,
+  Wallet,
+} from 'lucide-react-native';
 import { useState } from 'react';
 import { ScrollView, Text, useColorScheme, View } from 'react-native';
 
@@ -7,6 +13,7 @@ import { Card, CardContent, CardHeader } from '@/components/card';
 import { CategoryBadge } from '@/components/category-badge';
 import { EmptyState } from '@/components/empty-state';
 import { ErrorBox } from '@/components/error-box';
+import { Icon } from '@/components/icon';
 import { SkeletonText } from '@/components/skeleton';
 import { StatCard, StatCardSkeleton } from '@/components/stat-card';
 import { Text as AppText } from '@/components/text';
@@ -276,27 +283,19 @@ export default function ThemeTest() {
 
         <StatCard
           label='Saldo'
-          icon={<AppText tone='band-foreground'>=</AppText>}
+          icon={<Icon icon={Wallet} tone='band-foreground' />}
           value={formatCurrency(12345.67)}
           note='atualizado agora'
         />
         <StatCard
           label='Receitas'
-          icon={
-            <AppText tone='income' className='font-bold'>
-              ↑
-            </AppText>
-          }
+          icon={<Icon icon={CircleArrowUp} tone='band-foreground' />}
           value={formatCurrency(8000)}
           tone='income'
         />
         <StatCard
           label='Despesas'
-          icon={
-            <AppText tone='expense' className='font-bold'>
-              ↓
-            </AppText>
-          }
+          icon={<Icon icon={CircleArrowDown} tone='band-foreground' />}
           value={formatCurrency(123456.78)}
           tone='expense'
           note='valor de 6 dígitos para testar a largura em 360px'
@@ -347,6 +346,7 @@ export default function ThemeTest() {
         <View className='flex-1'>
           <StatCard
             label='Saldo'
+            icon={<Icon icon={Wallet} tone='band-foreground' />}
             value={formatCurrency(1234)}
             note='atualizado agora'
           />
@@ -359,6 +359,7 @@ export default function ThemeTest() {
         <View className='flex-1'>
           <StatCard
             label='Despesas'
+            icon={<Icon icon={CircleArrowDown} tone='band-foreground' />}
             value={formatCurrency(123456.78)}
             tone='expense'
           />
@@ -370,11 +371,7 @@ export default function ThemeTest() {
       </View>
 
       <EmptyState
-        icon={
-          <AppText tone='muted' className='text-3xl'>
-            ○
-          </AppText>
-        }
+        icon={<Icon icon={Target} tone='muted' size={32} />}
         message='Nenhuma meta ainda. Crie a primeira e acompanhe quanto falta para chegar lá.'
       />
       <ErrorBox message='Não foi possível carregar as transações.' />

@@ -1,6 +1,7 @@
+import { ArrowDown, ArrowUp } from 'lucide-react-native';
 import { View } from 'react-native';
 
-import { Text } from '@/components/text';
+import { Icon } from '@/components/icon';
 
 export type TransactionType = 'income' | 'expense';
 
@@ -17,9 +18,10 @@ export function TypeIcon({ type }: { type: TransactionType }) {
       accessibilityLabel={isIncome ? 'receita' : 'despesa'}
       className={`size-8 shrink-0 items-center justify-center rounded-lg border-2 ${isIncome ? 'border-income' : 'border-expense'}`}
     >
-      <Text tone={isIncome ? 'income' : 'expense'} className='font-bold'>
-        {isIncome ? '↑' : '↓'}
-      </Text>
+      <Icon
+        icon={isIncome ? ArrowUp : ArrowDown}
+        tone={isIncome ? 'income' : 'expense'}
+      />
     </View>
   );
 }

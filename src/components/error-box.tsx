@@ -1,6 +1,9 @@
+// TriangleExclamationPoint é o nome atual do AlertTriangle usado no web
+import { TriangleExclamationPoint } from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { Icon } from '@/components/icon';
 import { Text } from '@/components/text';
 
 export type ErrorBoxProps = {
@@ -18,15 +21,10 @@ export function ErrorBox({ message, onRetry }: ErrorBoxProps) {
       className='gap-3 rounded-xl border-2 border-expense bg-surface p-3'
     >
       <View className='flex-row items-start gap-2'>
-        {/* Provisório até a biblioteca de ícones (AlertTriangle no web) */}
-        <Text
-          accessibilityElementsHidden
-          importantForAccessibility='no'
-          tone='expense'
-          className='text-sm font-bold'
-        >
-          !
-        </Text>
+        {/* mt-0.5 centraliza o ícone de 16px na linha de 20px do text-sm */}
+        <View className='mt-0.5'>
+          <Icon icon={TriangleExclamationPoint} tone='expense' />
+        </View>
         <Text className='flex-1 text-sm font-medium'>{message}</Text>
       </View>
       {onRetry && (
