@@ -1,16 +1,18 @@
 {
   "expo": {
-    "name": "finance-mobile",
-    "slug": "finance-mobile",
+    "name": "Finance.ai",
+    "slug": "finance-ai",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "financemobile",
+    "scheme": "financeai",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "bundleIdentifier": "br.dev.ericksantana.financeai",
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "br.dev.ericksantana.financeai",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
