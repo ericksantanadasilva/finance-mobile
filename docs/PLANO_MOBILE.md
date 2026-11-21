@@ -15,18 +15,18 @@ Este repositório é **público**: nenhum segredo entra no Git.
 
 ## Decisões
 
-| # | Tema | Decisão |
-|---|---|---|
-| 1 | Identificadores | `android.package` e `ios.bundleIdentifier` = `br.dev.ericksantana.financeai` |
-| 2 | Plataforma | Tudo no Android primeiro. iOS depois (exige Apple Developer Program para instalar build em aparelho físico) |
-| 3 | Estilo | NativeWind v4 estável (Tailwind v3). Se não funcionar no SDK 58, parar e decidir entre v5 (RC) e Uniwind |
-| 4 | Client IDs do Google | No `app.json` (não são segredos e o EAS Build roda na nuvem sem o `.env`). Segredos nunca vão para o app |
-| 5 | Navegação | `Tabs` em JavaScript (estilizáveis no padrão neo-brutalista), não `NativeTabs` |
-| 6 | Busca de dados | `@tanstack/react-query`, instalado na etapa em que for usado |
-| 7 | Visão Geral | Sem biblioteca de gráficos na primeira versão (cards e barras com `View`) |
-| 8 | Login | Google Sign-In nativo (`@react-native-google-signin/google-signin`, API "Original"), `webClientId` = `GOOGLE_CLIENT_ID` do backend |
-| 9 | Tokens | Access token (1h) + refresh token no `expo-secure-store` |
-| 10 | Formatação | Prettier com aspas simples, igual ao `financeiro` |
+| #   | Tema                 | Decisão                                                                                                                            |
+| --- | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Identificadores      | `android.package` e `ios.bundleIdentifier` = `br.dev.ericksantana.financeai`                                                       |
+| 2   | Plataforma           | Tudo no Android primeiro. iOS depois (exige Apple Developer Program para instalar build em aparelho físico)                        |
+| 3   | Estilo               | NativeWind v4 estável (Tailwind v3). Se não funcionar no SDK 58, parar e decidir entre v5 (RC) e Uniwind                           |
+| 4   | Client IDs do Google | No `app.json` (não são segredos e o EAS Build roda na nuvem sem o `.env`). Segredos nunca vão para o app                           |
+| 5   | Navegação            | `Tabs` em JavaScript (estilizáveis no padrão neo-brutalista), não `NativeTabs`                                                     |
+| 6   | Busca de dados       | `@tanstack/react-query`, instalado na etapa em que for usado                                                                       |
+| 7   | Visão Geral          | Sem biblioteca de gráficos na primeira versão (cards e barras com `View`)                                                          |
+| 8   | Login                | Google Sign-In nativo (`@react-native-google-signin/google-signin`, API "Original"), `webClientId` = `GOOGLE_CLIENT_ID` do backend |
+| 9   | Tokens               | Access token (1h) + refresh token no `expo-secure-store`                                                                           |
+| 10  | Formatação           | Prettier com aspas simples, igual ao `financeiro`                                                                                  |
 
 ## Ambiente de desenvolvimento
 
@@ -59,6 +59,7 @@ Cada sub-etapa termina com `npx tsc --noEmit` + `npx expo lint`, a lista de
 arquivos, como testar e uma sugestão de commit.
 
 ### Etapa 1: base do projeto
+
 - [ ] **1a** Remover telas, componentes, hooks, imagens e script de exemplo do template
 - [ ] **1b** Prettier (dev, versão fixa) + `.prettierrc` igual ao `financeiro`
 - [ ] **1c** `.gitignore`: ignorar `.env`; remover as linhas `example` e `src/global.css`
@@ -66,6 +67,7 @@ arquivos, como testar e uma sugestão de commit.
 - [ ] **1e** Identidade no `app.json`: nome, slug, scheme, `android.package`, `ios.bundleIdentifier`
 
 ### Etapa 2: login com Google
+
 - [ ] **2a** Conta Expo, `eas init`, `eas.json` (perfil `development`), primeira development build Android
 - [ ] **2b** SHA-1 (`eas credentials`) → client Android no Google Cloud (mesmo projeto do `GOOGLE_CLIENT_ID`) → `GOOGLE_MOBILE_CLIENT_IDS` no backend
 - [ ] **2c** Pacotes: `@react-native-google-signin/google-signin`, `expo-secure-store`, `expo-dev-client` (+ plugin no `app.json`)
@@ -74,12 +76,14 @@ arquivos, como testar e uma sugestão de commit.
 - [ ] **2f** Telas de login e de sessão (perfil + sair); erros: cancelado, sem rede, 401, 403, 500
 
 ### Etapa 3: tema
+
 - [ ] **3a** NativeWind v4 + tokens do `DESIGN_SYSTEM.md` como variáveis CSS (claro/escuro, sem `dark:`)
 - [ ] **3b** Fontes Space Grotesk e Space Mono (`@expo-google-fonts/*`, plugin do `expo-font`)
 - [ ] **3c** Componentes base: `Button`, `Card`/`CardHeader`, `TypeIcon`, `CategoryBadge`, `StatCard`, `Skeleton`, `EmptyState`, `ErrorBox`
 - [ ] **3d** Aplicar o tema nas telas da Etapa 2
 
 ### Etapa 4: telas de leitura
+
 - [ ] **4a** Instalar `@tanstack/react-query`; Tabs em JavaScript
 - [ ] **4b** Visão Geral (`GET /dashboard`, agregação por mês no app)
 - [ ] **4c** Transações (`GET /transactions`, paginação e filtro de mês)
