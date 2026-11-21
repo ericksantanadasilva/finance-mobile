@@ -70,8 +70,8 @@ arquivos, como testar e uma sugestão de commit.
 
 - [x] **2a** Conta Expo, `eas init`, `eas.json` (perfil `development`), primeira development build Android
 - [x] **2b** SHA-1 (`eas credentials`) → client Android no Google Cloud (mesmo projeto do `GOOGLE_CLIENT_ID`) → `GOOGLE_MOBILE_CLIENT_IDS` no backend
-- [ ] **2c** Pacotes: `@react-native-google-signin/google-signin`, `expo-secure-store`, `expo-dev-client` (+ plugin no `app.json`)
-- [ ] **2d** Rede local: confirmar HTTP para o IP do PC; se bloqueado, `expo-build-properties` (`usesCleartextTraffic`) só em desenvolvimento
+- [x] **2c** Pacotes: `@react-native-google-signin/google-signin`, `expo-secure-store` (+ plugins no `app.json`, `iosUrlScheme` e `extra.googleWebClientId`); o `expo-dev-client` entrou na 2a
+- [x] **2d** Rede local: HTTP para o IP do PC funciona na development build (debug); `expo-build-properties` não foi necessário
 - [ ] **2e** `src/lib/session.ts`, `src/lib/api.ts`, Context de sessão
 - [ ] **2f** Telas de login e de sessão (perfil + sair); erros: cancelado, sem rede, 401, 403, 500
 
