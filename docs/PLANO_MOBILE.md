@@ -60,11 +60,11 @@ arquivos, como testar e uma sugestão de commit.
 
 ### Etapa 1: base do projeto
 
-- [ ] **1a** Remover telas, componentes, hooks, imagens e script de exemplo do template
-- [ ] **1b** Prettier (dev, versão fixa) + `.prettierrc` igual ao `financeiro`
-- [ ] **1c** `.gitignore`: ignorar `.env` e `.env.*` (exceto `.env.example`); remover a linha `example`
-- [ ] **1d** `EXPO_PUBLIC_API_URL` + `.env.example` + `src/lib/env.ts`
-- [ ] **1e** Identidade no `app.json`: nome, slug, scheme, `android.package`, `ios.bundleIdentifier`
+- [x] **1a** Remover telas, componentes, hooks, imagens e script de exemplo do template
+- [x] **1b** Prettier (dev, versão fixa) + `.prettierrc` igual ao `financeiro`; ESLint (`eslint-config-expo`, via `npx expo lint`)
+- [x] **1c** `.gitignore`: ignorar `.env` e `.env.*` (exceto `.env.example`); remover a linha `example`
+- [x] **1d** `EXPO_PUBLIC_API_URL` + `.env.example` + `src/lib/env.ts`
+- [x] **1e** Identidade no `app.json`: nome, slug, scheme, `android.package`, `ios.bundleIdentifier`
 
 ### Etapa 2: login com Google
 
