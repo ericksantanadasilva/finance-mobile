@@ -4,9 +4,15 @@ import { ScrollView, Text, useColorScheme, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Card, CardContent, CardHeader } from '@/components/card';
-import { StatCard } from '@/components/stat-card';
+import { CategoryBadge } from '@/components/category-badge';
+import { EmptyState } from '@/components/empty-state';
+import { ErrorBox } from '@/components/error-box';
+import { SkeletonText } from '@/components/skeleton';
+import { StatCard, StatCardSkeleton } from '@/components/stat-card';
 import { Text as AppText } from '@/components/text';
+import { TypeIcon } from '@/components/type-icon';
 import { useHardShadow } from '@/lib/hard-shadow';
+import { formatCurrency } from '@/lib/format';
 
 // PROVISÓRIO (Etapa 3): vitrine para provar o NativeWind no SDK 58, os tokens
 // e a sombra dura. Só em desenvolvimento; sai quando os componentes base existirem.
@@ -271,7 +277,7 @@ export default function ThemeTest() {
         <StatCard
           label='Saldo'
           icon={<AppText tone='band-foreground'>=</AppText>}
-          value='R$ 12.345,67'
+          value={formatCurrency(12345.67)}
           note='atualizado agora'
         />
         <StatCard
@@ -281,7 +287,7 @@ export default function ThemeTest() {
               ↑
             </AppText>
           }
-          value='R$ 8.000,00'
+          value={formatCurrency(8000)}
           tone='income'
         />
         <StatCard
@@ -291,11 +297,91 @@ export default function ThemeTest() {
               ↓
             </AppText>
           }
-          value='R$ 123.456,78'
+          value={formatCurrency(123456.78)}
           tone='expense'
           note='valor de 6 dígitos para testar a largura em 360px'
         />
       </View>
+
+      <AppText variant='title' className='text-lg lowercase'>
+        7. estados e selos
+      </AppText>
+      <View className='gap-3 rounded-xl border-2 border-ink bg-surface p-4'>
+        <AppText tone='muted' className='text-sm'>
+          typeicon (o leitor de tela diz receita/despesa)
+        </AppText>
+        <View className='flex-row items-center gap-3'>
+          <TypeIcon type='income' />
+          <AppText variant='value' tone='income' className='font-bold'>
+            R$ 100,00
+          </AppText>
+          <TypeIcon type='expense' />
+          <AppText variant='value' tone='expense' className='font-bold'>
+            R$ 50,00
+          </AppText>
+        </View>
+        <AppText tone='muted' className='text-sm'>
+          categorybadge (último: cor inválida &quot;bg-zinc-500&quot; → cinza)
+        </AppText>
+        <View className='flex-row flex-wrap gap-2'>
+          <CategoryBadge name='Alimentação' color='#f59e0b' />
+          <CategoryBadge name='SALÁRIO' color='#10b981' />
+          <CategoryBadge name='Transporte' color='#3b82f6' />
+          <CategoryBadge name={null} color='#ef4444' />
+          <CategoryBadge name='Antiga' color='bg-zinc-500' />
+        </View>
+        <CategoryBadge
+          name='Uma categoria com um nome comprido demais para caber na linha'
+          color='#a855f7'
+        />
+      </View>
+
+      <AppText tone='muted' className='text-sm'>
+        skeleton ao lado do card carregado: as alturas devem bater, e o valor
+        fica numa linha só (o de 6 dígitos diminui a fonte)
+      </AppText>
+      <View className='flex-row gap-3 pb-1 pr-1'>
+        <View className='flex-1'>
+          <StatCardSkeleton hasNote />
+        </View>
+        <View className='flex-1'>
+          <StatCard
+            label='Saldo'
+            value={formatCurrency(1234)}
+            note='atualizado agora'
+          />
+        </View>
+      </View>
+      <View className='flex-row gap-3 pb-1 pr-1'>
+        <View className='flex-1'>
+          <StatCardSkeleton />
+        </View>
+        <View className='flex-1'>
+          <StatCard
+            label='Despesas'
+            value={formatCurrency(123456.78)}
+            tone='expense'
+          />
+        </View>
+      </View>
+      <View className='gap-1'>
+        <SkeletonText className='text-base' chars={20} />
+        <SkeletonText className='text-sm' chars={30} tone='soft' />
+      </View>
+
+      <EmptyState
+        icon={
+          <AppText tone='muted' className='text-3xl'>
+            ○
+          </AppText>
+        }
+        message='Nenhuma meta ainda. Crie a primeira e acompanhe quanto falta para chegar lá.'
+      />
+      <ErrorBox message='Não foi possível carregar as transações.' />
+      <ErrorBox
+        message='Sem conexão com o servidor. Verifique a internet.'
+        onRetry={press}
+      />
 
       <Link href='/' className='py-2 text-base text-foreground underline'>
         voltar
