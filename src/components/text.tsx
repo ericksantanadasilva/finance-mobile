@@ -19,7 +19,8 @@ const TONES = {
   income: 'text-income',
   expense: 'text-expense',
   warning: 'text-warning',
-  // Sobre fundos coloridos (ex.: rótulo dos botões ai e danger)
+  // Sobre fundos coloridos (ex.: faixa do card, rótulo dos botões ai e danger)
+  'band-foreground': 'text-band-foreground',
   'ai-foreground': 'text-ai-foreground',
   'danger-foreground': 'text-danger-foreground',
 } as const;

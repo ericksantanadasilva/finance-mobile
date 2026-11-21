@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { ScrollView, Text, useColorScheme, View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { Card, CardContent, CardHeader } from '@/components/card';
+import { StatCard } from '@/components/stat-card';
 import { Text as AppText } from '@/components/text';
 import { useHardShadow } from '@/lib/hard-shadow';
 
@@ -241,6 +243,58 @@ export default function ThemeTest() {
         <Button size='lg' onPress={press}>
           largura total
         </Button>
+      </View>
+
+      <AppText variant='title' className='text-lg lowercase'>
+        6. card e stat card
+      </AppText>
+      <View className='gap-6 pb-1 pr-1'>
+        <Card>
+          <CardHeader>
+            Últimas Transações
+            <AppText tone='band-foreground' className='text-sm'>
+              Mercado do João
+            </AppText>
+          </CardHeader>
+          <CardContent className='gap-2'>
+            <AppText>
+              faixa em band nos dois modos, nunca invertida. o rótulo da
+              esquerda foi escrito em maiúsculas e aparece em minúsculas; o da
+              direita é dado do usuário e fica como foi cadastrado.
+            </AppText>
+            <Button variant='outline' size='sm' className='self-start'>
+              ver todas
+            </Button>
+          </CardContent>
+        </Card>
+
+        <StatCard
+          label='Saldo'
+          icon={<AppText tone='band-foreground'>=</AppText>}
+          value='R$ 12.345,67'
+          note='atualizado agora'
+        />
+        <StatCard
+          label='Receitas'
+          icon={
+            <AppText tone='income' className='font-bold'>
+              ↑
+            </AppText>
+          }
+          value='R$ 8.000,00'
+          tone='income'
+        />
+        <StatCard
+          label='Despesas'
+          icon={
+            <AppText tone='expense' className='font-bold'>
+              ↓
+            </AppText>
+          }
+          value='R$ 123.456,78'
+          tone='expense'
+          note='valor de 6 dígitos para testar a largura em 360px'
+        />
       </View>
 
       <Link href='/' className='py-2 text-base text-foreground underline'>
