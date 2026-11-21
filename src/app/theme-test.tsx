@@ -1,6 +1,7 @@
 import { Link } from 'expo-router';
 import { ScrollView, Text, useColorScheme, View } from 'react-native';
 
+import { Text as AppText } from '@/components/text';
 import { useHardShadow } from '@/lib/hard-shadow';
 
 // PROVISÓRIO (Etapa 3): vitrine para provar o NativeWind no SDK 58, os tokens
@@ -128,6 +129,60 @@ export default function ThemeTest() {
             lg: 6px (diálogos, card de login)
           </Text>
         </View>
+      </View>
+
+      {/* 4. Componentes base (Etapa 3c) */}
+      <AppText variant='title' className='text-lg lowercase'>
+        4. componente text
+      </AppText>
+      <View className='gap-2 rounded-xl border-2 border-ink bg-surface p-4'>
+        <AppText variant='title' className='text-xl lowercase'>
+          título (space mono 700)
+        </AppText>
+        <AppText>corpo padrão: space grotesk, cor foreground</AppText>
+        <AppText tone='muted' className='text-sm'>
+          secundário: muted-foreground
+        </AppText>
+        <View className='gap-1'>
+          <AppText tone='muted' className='text-sm'>
+            valor: o 1 ocupa a mesma largura do 8 (colunas alinhadas)
+          </AppText>
+          <View className='flex-row justify-between'>
+            <AppText tone='muted' className='text-sm'>
+              com value
+            </AppText>
+            <View>
+              <AppText variant='value' className='text-right font-bold'>
+                R$ 1.111,11
+              </AppText>
+              <AppText variant='value' className='text-right font-bold'>
+                R$ 8.888,88
+              </AppText>
+            </View>
+          </View>
+          <View className='flex-row justify-between'>
+            <AppText tone='muted' className='text-sm'>
+              sem value
+            </AppText>
+            <View>
+              <AppText className='text-right font-bold'>R$ 1.111,11</AppText>
+              <AppText className='text-right font-bold'>R$ 8.888,88</AppText>
+            </View>
+          </View>
+        </View>
+        <AppText variant='value' className='font-bold'>
+          <AppText variant='value' tone='income' className='font-bold'>
+            ↑ R$ 100,00
+          </AppText>
+          {'  '}
+          <AppText variant='value' tone='expense' className='font-bold'>
+            ↓ R$ 50,00
+          </AppText>
+          {'  '}
+          <AppText variant='value' tone='warning' className='font-bold'>
+            ! pendente
+          </AppText>
+        </AppText>
       </View>
 
       <Link href='/' className='py-2 text-base text-foreground underline'>
