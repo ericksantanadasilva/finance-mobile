@@ -32,6 +32,15 @@ export async function saveTokens(tokens: Tokens) {
   cached = tokens;
 }
 
+/**
+ * Só em desenvolvimento: troca o access token em memória por um inválido,
+ * para a próxima chamada levar 401 e testar a renovação. O SecureStore não muda.
+ */
+export function breakAccessTokenForTesting() {
+  if (!__DEV__ || !cached) return;
+  cached = { ...cached, accessToken: 'token-invalido-de-teste' };
+}
+
 export async function clearTokens() {
   cached = null;
   await Promise.all([
