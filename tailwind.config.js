@@ -30,6 +30,14 @@ module.exports = {
         'danger-border': 'var(--danger-border)',
         overlay: 'var(--overlay)',
       },
+      // Famílias embutidas pelo plugin do expo-font (app.json). No Android cada
+      // família tem os pesos 400/500/700 (Grotesk) e 400/700 (Mono), então
+      // font-medium e font-bold funcionam como no web. No iOS o nome vem do
+      // arquivo ("Space Grotesk"): resolver com platformSelect quando o iOS entrar.
+      fontFamily: {
+        sans: ['SpaceGrotesk'],
+        display: ['SpaceMono'],
+      },
       // Sem boxShadow aqui: no Android a classe de sombra não desenha nada.
       // A sombra dura é o hook useHardShadow (src/lib/hard-shadow.ts).
     },
