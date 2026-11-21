@@ -33,9 +33,27 @@ export default function ThemeTest() {
       className='bg-background'
       contentContainerClassName='gap-4 p-6 pt-16'
     >
-      <Text className='text-2xl font-bold text-foreground'>
+      <Text className='font-display text-2xl font-bold text-foreground'>
         vitrine do tema ({scheme})
       </Text>
+
+      {/* 0. Fontes embutidas pelo plugin do expo-font (3ª build) */}
+      <View className='gap-1 rounded-xl border-2 border-ink bg-surface p-4'>
+        <Text className='font-sans text-foreground'>
+          space grotesk 400 · R$ 1.234,56
+        </Text>
+        <Text className='font-sans font-medium text-foreground'>
+          space grotesk 500 (font-medium) · R$ 1.234,56
+        </Text>
+        <Text className='font-sans font-bold text-foreground'>
+          space grotesk 700 (font-bold) · R$ 1.234,56
+        </Text>
+        <Text className='font-display text-foreground'>space mono 400</Text>
+        <Text className='font-display font-bold text-foreground'>
+          space mono 700 (títulos)
+        </Text>
+        <Text className='text-foreground'>sem classe de fonte (sistema)</Text>
+      </View>
 
       {/* 1. Classes padrão do Tailwind (prova do NativeWind) */}
       <View className='rounded-xl border-2 border-black bg-yellow-200 p-4'>
