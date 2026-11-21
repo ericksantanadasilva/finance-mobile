@@ -13,15 +13,22 @@ const OFFSETS = {
 
 export type HardShadowSize = keyof typeof OFFSETS;
 
-/** Estilo da sombra dura para passar no `style` de uma View. */
-export function useHardShadow(size: HardShadowSize = 'md'): ViewStyle {
-  const ink: unknown = useUnstableNativeVariable('--ink');
+/**
+ * Estilo da sombra dura para passar no `style` de uma View.
+ * `color` troca o token da sombra, como o `[--ink:var(--danger-border)]` do web
+ * (ex.: botão danger). O contorno do elemento deve usar o mesmo token.
+ */
+export function useHardShadow(
+  size: HardShadowSize = 'md',
+  color: `--${string}` = '--ink',
+): ViewStyle {
+  const value: unknown = useUnstableNativeVariable(color);
 
-  if (typeof ink !== 'string') {
-    if (__DEV__) console.warn('useHardShadow: token --ink não encontrado.');
+  if (typeof value !== 'string') {
+    if (__DEV__) console.warn(`useHardShadow: token ${color} não encontrado.`);
     return {};
   }
 
   const offset = OFFSETS[size];
-  return { boxShadow: `${offset}px ${offset}px 0px 0px ${ink}` };
+  return { boxShadow: `${offset}px ${offset}px 0px 0px ${value}` };
 }

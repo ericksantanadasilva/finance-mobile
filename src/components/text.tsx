@@ -19,6 +19,9 @@ const TONES = {
   income: 'text-income',
   expense: 'text-expense',
   warning: 'text-warning',
+  // Sobre fundos coloridos (ex.: rótulo dos botões ai e danger)
+  'ai-foreground': 'text-ai-foreground',
+  'danger-foreground': 'text-danger-foreground',
 } as const;
 
 // A classe tabular-nums do Tailwind usa variáveis CSS que o NativeWind não

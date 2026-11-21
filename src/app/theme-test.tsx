@@ -1,6 +1,8 @@
 import { Link } from 'expo-router';
+import { useState } from 'react';
 import { ScrollView, Text, useColorScheme, View } from 'react-native';
 
+import { Button } from '@/components/button';
 import { Text as AppText } from '@/components/text';
 import { useHardShadow } from '@/lib/hard-shadow';
 
@@ -28,6 +30,9 @@ export default function ThemeTest() {
   const shadowSm = useHardShadow('sm');
   const shadowMd = useHardShadow();
   const shadowLg = useHardShadow('lg');
+  // Prova de que o onPress dispara (e que o disabled bloqueia)
+  const [presses, setPresses] = useState(0);
+  const press = () => setPresses((n) => n + 1);
 
   return (
     <ScrollView
@@ -183,6 +188,59 @@ export default function ThemeTest() {
             ! pendente
           </AppText>
         </AppText>
+      </View>
+
+      <AppText variant='title' className='text-lg lowercase'>
+        5. componente button
+      </AppText>
+      <AppText tone='muted' className='text-sm'>
+        segure para ver: adesivos afundam sobre a sombra; planos ganham fundo.
+        toques: {presses}
+      </AppText>
+      <View className='gap-3 rounded-xl border-2 border-ink bg-surface p-4'>
+        <View className='flex-row flex-wrap gap-3'>
+          <Button onPress={press}>Salvar</Button>
+          <Button variant='outline' onPress={press}>
+            cancelar
+          </Button>
+          <Button variant='ghost' onPress={press}>
+            ghost
+          </Button>
+        </View>
+        <View className='flex-row flex-wrap gap-3'>
+          <Button variant='ai' onPress={press}>
+            importar ia
+          </Button>
+          <Button variant='danger' onPress={press}>
+            excluir
+          </Button>
+        </View>
+        <View className='flex-row flex-wrap items-center gap-3'>
+          <Button size='sm' onPress={press}>
+            sm
+          </Button>
+          <Button onPress={press}>md</Button>
+          <Button size='lg' onPress={press}>
+            lg
+          </Button>
+          <Button size='icon' accessibilityLabel='adicionar' onPress={press}>
+            +
+          </Button>
+        </View>
+        <View className='flex-row flex-wrap gap-3'>
+          <Button disabled onPress={press}>
+            desativado
+          </Button>
+          <Button variant='danger' disabled onPress={press}>
+            excluir
+          </Button>
+          <Button variant='outline' disabled onPress={press}>
+            cancelar
+          </Button>
+        </View>
+        <Button size='lg' onPress={press}>
+          largura total
+        </Button>
       </View>
 
       <Link href='/' className='py-2 text-base text-foreground underline'>
