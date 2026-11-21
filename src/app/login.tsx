@@ -2,7 +2,7 @@ import {
   isErrorWithCode,
   statusCodes,
 } from '@react-native-google-signin/google-signin';
-import { useTheme } from 'expo-router';
+import { Link, useTheme } from 'expo-router';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -88,6 +88,13 @@ export default function Login() {
         <Text accessibilityRole='alert' style={{ color: colors.text }}>
           {error}
         </Text>
+      )}
+
+      {/* Provisório (Etapa 3) */}
+      {__DEV__ && (
+        <Link href='/theme-test' style={{ color: colors.text }}>
+          [dev] vitrine do tema
+        </Link>
       )}
     </View>
   );

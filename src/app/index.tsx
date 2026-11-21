@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useTheme } from 'expo-router';
+import { Link, useTheme } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -66,6 +66,12 @@ export default function SessionScreen() {
       )}
 
       {__DEV__ && <RefreshTest />}
+      {/* Provisório (Etapa 3) */}
+      {__DEV__ && (
+        <Link href='/theme-test' style={{ color: colors.text }}>
+          [dev] vitrine do tema
+        </Link>
+      )}
     </View>
   );
 }

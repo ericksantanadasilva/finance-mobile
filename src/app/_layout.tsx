@@ -1,3 +1,5 @@
+import '@/global.css';
+
 import {
   DarkTheme,
   DefaultTheme,
@@ -51,6 +53,10 @@ function RootNavigator() {
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name='login' />
+      </Stack.Protected>
+      {/* Provisório (Etapa 3): vitrine do tema, só em desenvolvimento */}
+      <Stack.Protected guard={__DEV__}>
+        <Stack.Screen name='theme-test' />
       </Stack.Protected>
     </Stack>
   );
