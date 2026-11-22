@@ -306,3 +306,26 @@ export function getTransactions(
 
   return apiFetch<TransactionsPage>(`/api/v1/transactions?${params}`);
 }
+
+// ---------------------------------------------------------------------------
+// Categorias
+
+/** Categoria com o limite mensal e o gasto no mês de competência. */
+export type CategoryBudget = {
+  id: string;
+  name: string;
+  color: string;
+  budget: number | null;
+  spent: number;
+  /** spent / budget * 100 (pode ter resíduo de ponto flutuante); null sem limite. */
+  percent: number | null;
+};
+
+/** `month` "YYYY-MM"; sem ele, o servidor usa o mês atual. */
+export async function getCategories(month?: string) {
+  const query = month ? `?month=${encodeURIComponent(month)}` : '';
+  const data = await apiFetch<{ categories: CategoryBudget[] }>(
+    `/api/v1/categories${query}`,
+  );
+  return data.categories;
+}
