@@ -2,11 +2,21 @@ import { Children, type ReactNode } from 'react';
 import { View, type ViewProps } from 'react-native';
 
 import { Text } from '@/components/text';
-import { useHardShadow } from '@/lib/hard-shadow';
+import { type HardShadowSize, useHardShadow } from '@/lib/hard-shadow';
+
+export type CardProps = ViewProps & {
+  /** md (padrão); lg em diálogos e no card de login. */
+  shadow?: HardShadowSize;
+};
 
 /** Card adesivo: contorno ink e sombra dura. */
-export function Card({ className, style, ...props }: ViewProps) {
-  const shadow = useHardShadow();
+export function Card({
+  shadow: shadowSize = 'md',
+  className,
+  style,
+  ...props
+}: CardProps) {
+  const shadow = useHardShadow(shadowSize);
   return (
     <View
       {...props}

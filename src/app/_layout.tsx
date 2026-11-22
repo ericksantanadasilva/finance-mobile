@@ -1,22 +1,14 @@
 import '@/global.css';
 
-import {
-  DarkTheme,
-  DefaultTheme,
-  Stack,
-  ThemeProvider,
-  useTheme,
-} from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
+import { useColorScheme, View } from 'react-native';
 
+import { CenteredScreen } from '@/components/centered-screen';
+import { ErrorBox } from '@/components/error-box';
+import { Text } from '@/components/text';
 import { SessionProvider, useSession } from '@/lib/session-context';
 
 // O splash fica na tela até a sessão ser confirmada (evita piscar o login)
@@ -28,6 +20,9 @@ export default function RootLayout() {
   return (
     <SessionProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        {/* auto: ícones escuros no claro e claros no escuro; o fundo atrás
+            da barra é a própria tela (edge-to-edge) */}
+        <StatusBar style='auto' />
         <RootNavigator />
       </ThemeProvider>
     </SessionProvider>
@@ -65,45 +60,17 @@ function RootNavigator() {
 /** Há tokens salvos, mas não deu para confirmar a sessão (ex.: servidor fora do ar). */
 function SessionError() {
   const { session, retry } = useSession();
-  const { colors } = useTheme();
   const message =
     session.status === 'error' ? session.message : 'Erro ao carregar a sessão.';
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View accessibilityRole='alert' style={styles.alert}>
-        <Text style={{ color: colors.text }}>
-          não foi possível abrir sua sessão
+    <CenteredScreen>
+      <View className='w-full max-w-md gap-4'>
+        <Text variant='title' className='text-xl lowercase'>
+          Não foi possível abrir sua sessão
         </Text>
-        <Text style={{ color: colors.text }}>{message}</Text>
+        <ErrorBox message={message} onRetry={retry} />
       </View>
-      <Pressable
-        accessibilityRole='button'
-        onPress={retry}
-        style={[styles.button, { borderColor: colors.text }]}
-      >
-        <Text style={{ color: colors.text }}>tentar de novo</Text>
-      </Pressable>
-    </View>
+    </CenteredScreen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-    padding: 24,
-  },
-  alert: {
-    gap: 4,
-    alignItems: 'center',
-  },
-  button: {
-    borderWidth: 2,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-});
