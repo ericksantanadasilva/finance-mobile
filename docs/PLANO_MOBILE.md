@@ -87,7 +87,7 @@ arquivos, como testar e uma sugestão de commit.
 - [x] **4a** Instalar `@tanstack/react-query`; Tabs em JavaScript
 - [x] **4b** Visão Geral (`GET /dashboard`, agregação por mês no app)
 - [x] **4c** Transações (`GET /transactions`, paginação e filtro de mês)
-- [ ] **4d** Categorias (`GET /categories`, orçamento com barra de progresso)
+- [x] **4d** Categorias (`GET /categories`, orçamento com barra de progresso)
 - [ ] **4e** Recorrentes (`GET /recurring`)
 - [ ] **4f** Metas (`GET /goals`)
 
