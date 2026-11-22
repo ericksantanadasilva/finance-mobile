@@ -1,5 +1,6 @@
 import '@/global.css';
 
+import { QueryClientProvider } from '@tanstack/react-query';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -9,6 +10,7 @@ import { useColorScheme, View } from 'react-native';
 import { CenteredScreen } from '@/components/centered-screen';
 import { ErrorBox } from '@/components/error-box';
 import { Text } from '@/components/text';
+import { queryClient } from '@/lib/query-client';
 import { SessionProvider, useSession } from '@/lib/session-context';
 
 // O splash fica na tela até a sessão ser confirmada (evita piscar o login)
@@ -18,14 +20,19 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <SessionProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        {/* auto: ícones escuros no claro e claros no escuro; o fundo atrás
-            da barra é a própria tela (edge-to-edge) */}
-        <StatusBar style='auto' />
-        <RootNavigator />
-      </ThemeProvider>
-    </SessionProvider>
+    // Por fora da sessão: ela limpa o cache ao sair
+    <QueryClientProvider client={queryClient}>
+      <SessionProvider>
+        <ThemeProvider
+          value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}
+        >
+          {/* auto: ícones escuros no claro e claros no escuro; o fundo atrás
+              da barra é a própria tela (edge-to-edge) */}
+          <StatusBar style='auto' />
+          <RootNavigator />
+        </ThemeProvider>
+      </SessionProvider>
+    </QueryClientProvider>
   );
 }
 

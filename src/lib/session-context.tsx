@@ -1,5 +1,6 @@
 // Estado da sessão para o app inteiro: único estado global, porque todas as
 // telas dependem de "há usuário logado?".
+import { useQueryClient } from '@tanstack/react-query';
 import {
   createContext,
   useContext,
@@ -62,6 +63,7 @@ async function restoreSession(): Promise<SessionState> {
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<SessionState>({ status: 'loading' });
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     // Refresh token recusado em qualquer chamada: volta para o login
@@ -69,6 +71,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     restoreSession().then(setSession);
     return () => setSessionEndedHandler(null);
   }, []);
+
+  // Saiu (pelo botão ou sessão derrubada): o próximo usuário não pode ver os
+  // dados do anterior. Roda depois de o Stack.Protected desmontar as abas,
+  // então nenhuma tela tenta recarregar sem tokens.
+  useEffect(() => {
+    if (session.status === 'signedOut') queryClient.clear();
+  }, [session.status, queryClient]);
 
   async function signIn() {
     const idToken = await getGoogleIdToken();
