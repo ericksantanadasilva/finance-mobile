@@ -53,6 +53,17 @@ const VARIANTS = {
     tone: 'danger-foreground',
     shadow: '--danger-border',
   },
+  // Contornadas na cor de entrada/saída (ex.: filtro de tipo em Transações)
+  income: {
+    container: 'border-income bg-surface',
+    tone: 'income',
+    shadow: '--income',
+  },
+  expense: {
+    container: 'border-expense bg-surface',
+    tone: 'expense',
+    shadow: '--expense',
+  },
 } satisfies Record<string, VariantStyle>;
 
 const SIZES = {

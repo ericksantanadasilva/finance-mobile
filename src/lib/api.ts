@@ -245,3 +245,64 @@ export async function getDashboard() {
   );
   return data.totals;
 }
+
+// ---------------------------------------------------------------------------
+// Transações
+
+export type TransactionItem = {
+  id: string;
+  description: string;
+  amount: number;
+  /** ISO; data da compra (sem horário: meio-dia UTC, ou meia-noite nos antigos). */
+  date: string;
+  referenceDate: string;
+  type: 'income' | 'expense';
+  isPaid: boolean;
+  recurringRuleId: string | null;
+  category: { name: string; color: string } | null;
+};
+
+export type TransactionSort =
+  'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc';
+
+/** Mesmos filtros da tela web (ver financeiro/app/api/v1/transactions). */
+export type TransactionFilters = {
+  /** "YYYY-MM" ou "all". */
+  month: string;
+  q?: string;
+  category?: string;
+  type?: 'income' | 'expense';
+  status?: 'paid' | 'pending';
+  sort?: TransactionSort;
+};
+
+export type TransactionsPage = {
+  items: TransactionItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+  /** Do conjunto filtrado inteiro (não só da página). */
+  totals: { income: number; expense: number; carryOver: number };
+  categories: string[];
+  months: string[];
+};
+
+export function getTransactions(
+  filters: TransactionFilters,
+  page: number,
+  pageSize = 20,
+) {
+  const params = new URLSearchParams({
+    month: filters.month,
+    page: String(page),
+    pageSize: String(pageSize),
+  });
+  if (filters.q?.trim()) params.set('q', filters.q.trim());
+  if (filters.category) params.set('category', filters.category);
+  if (filters.type) params.set('type', filters.type);
+  if (filters.status) params.set('status', filters.status);
+  if (filters.sort) params.set('sort', filters.sort);
+
+  return apiFetch<TransactionsPage>(`/api/v1/transactions?${params}`);
+}
