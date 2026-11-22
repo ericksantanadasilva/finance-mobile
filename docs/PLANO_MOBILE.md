@@ -80,7 +80,7 @@ arquivos, como testar e uma sugestão de commit.
 - [x] **3a** NativeWind v4 + tokens do `DESIGN_SYSTEM.md` como variáveis CSS (claro/escuro, sem `dark:`)
 - [x] **3b** Fontes Space Grotesk e Space Mono (`@expo-google-fonts/*`, plugin do `expo-font`)
 - [x] **3c** Componentes base: `Button`, `Card`/`CardHeader`, `TypeIcon`, `CategoryBadge`, `StatCard`, `Skeleton`, `EmptyState`, `ErrorBox`
-- [ ] **3d** Aplicar o tema nas telas da Etapa 2
+- [x] **3d** Aplicar o tema nas telas da Etapa 2
 
 ### Etapa 4: telas de leitura
 
