@@ -32,11 +32,20 @@ export function goalProgress(goal: Goal) {
   return Math.min(Math.floor(savedPercent(goal)), 100);
 }
 
-/** "YYYY-MM-DD" de hoje no fuso do aparelho. */
+// Fuso fixo, o mesmo do servidor e do web: o "hoje" não depende do aparelho
+const saoPauloDate = new Intl.DateTimeFormat('pt-BR', {
+  timeZone: 'America/Sao_Paulo',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+/** "YYYY-MM-DD" de hoje em America/Sao_Paulo. */
 function todayISO(now: Date) {
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${now.getFullYear()}-${month}-${day}`;
+  const parts = saoPauloDate.formatToParts(now);
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((p) => p.type === type)?.value;
+  return `${part('year')}-${part('month')}-${part('day')}`;
 }
 
 /**
