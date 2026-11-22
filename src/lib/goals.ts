@@ -1,6 +1,7 @@
 // Situação de uma meta pelo ritmo, não pela porcentagem pura: uma meta no
 // começo com pouco juntado não é problema, se o prazo também mal começou.
 import type { Goal } from './api';
+import { todayISO } from './dates';
 
 export type GoalPace =
   | { status: 'done' }
@@ -30,22 +31,6 @@ export function savedPercent(goal: Goal) {
  */
 export function goalProgress(goal: Goal) {
   return Math.min(Math.floor(savedPercent(goal)), 100);
-}
-
-// Fuso fixo, o mesmo do servidor e do web: o "hoje" não depende do aparelho
-const saoPauloDate = new Intl.DateTimeFormat('pt-BR', {
-  timeZone: 'America/Sao_Paulo',
-  year: 'numeric',
-  month: '2-digit',
-  day: '2-digit',
-});
-
-/** "YYYY-MM-DD" de hoje em America/Sao_Paulo. */
-function todayISO(now: Date) {
-  const parts = saoPauloDate.formatToParts(now);
-  const part = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((p) => p.type === type)?.value;
-  return `${part('year')}-${part('month')}-${part('day')}`;
 }
 
 /**

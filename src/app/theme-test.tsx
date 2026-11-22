@@ -1,3 +1,4 @@
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Link } from 'expo-router';
 import {
   CircleArrowDown,
@@ -11,17 +12,34 @@ import { ScrollView, Text, useColorScheme, View } from 'react-native';
 import { Button } from '@/components/button';
 import { Card, CardContent, CardHeader } from '@/components/card';
 import { CategoryBadge } from '@/components/category-badge';
+import { CategorySelect } from '@/components/category-select';
+import { ChipSelect } from '@/components/chip-select';
+import { DateField } from '@/components/date-field';
 import { EmptyState } from '@/components/empty-state';
 import { ErrorBox } from '@/components/error-box';
+import { FormField } from '@/components/form-field';
 import { GoalCard } from '@/components/goals/goal-card';
 import { Icon } from '@/components/icon';
+import { Input } from '@/components/input';
+import { MoneyInput } from '@/components/money-input';
 import { SkeletonText } from '@/components/skeleton';
 import { StatCard, StatCardSkeleton } from '@/components/stat-card';
 import { Text as AppText } from '@/components/text';
+import { useToast } from '@/components/toast';
 import { TypeIcon } from '@/components/type-icon';
+import { TypeSelect, type TransactionType } from '@/components/type-select';
 import { useHardShadow } from '@/lib/hard-shadow';
-import type { Goal } from '@/lib/api';
+import { ApiError, getCategories, type Goal } from '@/lib/api';
+import { currentMonthISO, shortMonthLabel } from '@/lib/dashboard';
+import { todayISO } from '@/lib/dates';
 import { formatCurrency } from '@/lib/format';
+import {
+  checkMoney,
+  checkText,
+  referenceMonthOptions,
+  writeErrorMessage,
+} from '@/lib/forms';
+import { invalidateAfterWrite } from '@/lib/query-client';
 
 // PROVISÓRIO (Etapa 3): vitrine para provar o NativeWind no SDK 58, os tokens
 // e a sombra dura. Só em desenvolvimento; sai quando os componentes base existirem.
@@ -123,6 +141,8 @@ export default function ThemeTest() {
   return (
     <ScrollView
       className='bg-background'
+      // Tocar num chip com o teclado aberto escolhe o chip (não só fecha o teclado)
+      keyboardShouldPersistTaps='handled'
       contentContainerClassName='gap-4 p-6 pt-16'
     >
       <Text className='font-display text-2xl font-bold text-foreground'>
@@ -463,9 +483,202 @@ export default function ThemeTest() {
         ))}
       </View>
 
+      <AppText variant='title' className='text-lg lowercase'>
+        9. formulário (5a)
+      </AppText>
+      <AppText tone='muted' className='text-sm'>
+        categorias reais (leitura); salvar é simulado e não grava nada
+      </AppText>
+      <FormDemo />
+
       <Link href='/' className='py-2 text-base text-foreground underline'>
         voltar
       </Link>
     </ScrollView>
+  );
+}
+
+type DemoErrors = Partial<
+  Record<'amount' | 'description' | 'category', string>
+>;
+
+/** Peças da 5a com uma gravação de mentira (1,5s; falha se "simular erro"). */
+function FormDemo() {
+  const toast = useToast();
+  const [type, setType] = useState<TransactionType>('expense');
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [category, setCategory] = useState('');
+  const [date, setDate] = useState(todayISO());
+  const [month, setMonth] = useState(currentMonthISO());
+  const [deadline, setDeadline] = useState<string | null>(null);
+  const [fail, setFail] = useState(false);
+  const [errors, setErrors] = useState<DemoErrors>({});
+
+  const categories = useQuery({
+    queryKey: ['categories', currentMonthISO()],
+    queryFn: () => getCategories(currentMonthISO()),
+  });
+
+  const mutation = useMutation({
+    mutationFn: async (payload: object) => {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      if (fail) throw new ApiError(0, 'Sem conexão com o servidor.');
+      return payload;
+    },
+    onSuccess: () => {
+      toast.show('success', 'Lançamento salvo (simulado).');
+      void invalidateAfterWrite('transaction');
+      setAmount('');
+      setDescription('');
+    },
+  });
+
+  function submit() {
+    const amountCheck = checkMoney(amount);
+    const descriptionCheck = checkText(description, {
+      max: 200,
+      empty: 'Informe a descrição.',
+    });
+    const categoryCheck = checkText(category, {
+      max: 50,
+      empty: 'Escolha ou crie uma categoria.',
+    });
+    setErrors({
+      amount: amountCheck.ok ? undefined : amountCheck.error,
+      description: descriptionCheck.ok ? undefined : descriptionCheck.error,
+      category: categoryCheck.ok ? undefined : categoryCheck.error,
+    });
+    if (!amountCheck.ok || !descriptionCheck.ok || !categoryCheck.ok) return;
+
+    mutation.mutate({
+      type,
+      amount: amountCheck.value,
+      description: descriptionCheck.value,
+      category: categoryCheck.value,
+      date,
+      referenceMonth: month,
+    });
+  }
+
+  const saving = mutation.isPending;
+
+  return (
+    <Card>
+      <CardHeader>novo lançamento</CardHeader>
+      <CardContent className='gap-5'>
+        <TypeSelect value={type} onChange={setType} disabled={saving} />
+
+        <FormField
+          label={
+            <>
+              valor (<AppText className='normal-case'>R$</AppText>)
+            </>
+          }
+          error={errors.amount}
+        >
+          <MoneyInput
+            accessibilityLabel='valor em reais'
+            value={amount}
+            editable={!saving}
+            invalid={!!errors.amount}
+            onChangeText={(text) => {
+              setAmount(text);
+              setErrors((e) => ({ ...e, amount: undefined }));
+            }}
+          />
+        </FormField>
+
+        <FormField label='descrição' error={errors.description}>
+          <Input
+            accessibilityLabel='descrição'
+            placeholder='Ex.: Mercado'
+            maxLength={200}
+            value={description}
+            editable={!saving}
+            invalid={!!errors.description}
+            onChangeText={(text) => {
+              setDescription(text);
+              setErrors((e) => ({ ...e, description: undefined }));
+            }}
+          />
+        </FormField>
+
+        <FormField label='categoria' error={errors.category}>
+          {categories.isError ? (
+            <ErrorBox
+              message='Não foi possível carregar as categorias.'
+              onRetry={() => categories.refetch()}
+            />
+          ) : (
+            <CategorySelect
+              options={categories.data?.map((c) => c.name) ?? []}
+              value={category}
+              invalid={!!errors.category}
+              onChange={(name) => {
+                setCategory(name);
+                setErrors((e) => ({ ...e, category: undefined }));
+              }}
+            />
+          )}
+        </FormField>
+
+        <FormField label='data da compra'>
+          <DateField
+            accessibilityLabel='data da compra'
+            value={date}
+            disabled={saving}
+            onChange={(value) => value && setDate(value)}
+          />
+        </FormField>
+
+        <FormField
+          label='mês de competência'
+          hint='O mês em que o valor entra nos totais e gráficos.'
+        >
+          <ChipSelect
+            options={referenceMonthOptions().map((m) => ({
+              value: m,
+              label: shortMonthLabel(m),
+            }))}
+            value={month}
+            onChange={setMonth}
+            accessibilityLabel='mês de competência'
+          />
+        </FormField>
+
+        <FormField label='prazo (opcional)'>
+          <DateField
+            accessibilityLabel='prazo'
+            value={deadline}
+            onChange={setDeadline}
+            clearable
+            placeholder='Sem prazo'
+          />
+        </FormField>
+
+        {mutation.error && (
+          <ErrorBox message={writeErrorMessage(mutation.error)} />
+        )}
+
+        <View className='flex-row gap-3 pb-1 pr-1'>
+          <Button
+            variant='outline'
+            className='flex-1'
+            onPress={() => setFail((f) => !f)}
+          >
+            {fail ? 'erro: ligado' : 'simular erro'}
+          </Button>
+          <Button
+            className='flex-1'
+            disabled={saving}
+            accessibilityState={{ disabled: saving, busy: saving }}
+            onPress={submit}
+          >
+            {saving ? 'salvando...' : 'salvar'}
+          </Button>
+        </View>
+      </CardContent>
+    </Card>
   );
 }

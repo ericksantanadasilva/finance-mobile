@@ -1,7 +1,11 @@
 // Cache das consultas à API (React Query). As consultas chamam o apiFetch,
 // que já cuida do token e da renovação; aqui ficam as regras de repetição e
 // de atualização.
-import { focusManager, QueryClient } from '@tanstack/react-query';
+import {
+  focusManager,
+  QueryClient,
+  type QueryKey,
+} from '@tanstack/react-query';
 import { AppState } from 'react-native';
 
 import { ApiError } from './api';
@@ -35,3 +39,43 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+// ---------------------------------------------------------------------------
+// Depois de gravar. Cada gravação diz o que mudou; as consultas afetadas
+// recarregam: as que estão na tela, na hora; as outras, ao serem abertas.
+// Invalidar (em vez de montar o cache à mão) mantém iguais ao servidor os
+// totais, as ordens e os filtros que o app não calcula.
+
+const AFFECTED = {
+  // Totais do mês, gasto das categorias e a própria lista
+  transaction: [['transactions'], ['dashboard'], ['categories']],
+  category: [['categories']],
+  // Criar e retomar geram transações no servidor
+  recurring: [['recurring'], ['transactions'], ['dashboard'], ['categories']],
+  goal: [['goals']],
+} satisfies Record<string, QueryKey[]>;
+
+export type WrittenResource = keyof typeof AFFECTED;
+
+/** Marca como vencidas as consultas que a gravação mudou (por prefixo da chave). */
+export function invalidateAfterWrite(resource: WrittenResource) {
+  return Promise.all(
+    AFFECTED[resource].map((queryKey) =>
+      queryClient.invalidateQueries({ queryKey }),
+    ),
+  );
+}
+
+/**
+ * Troca um item numa lista simples do cache (ex.: ['goals']) pelo que a API
+ * devolveu, para a tela mudar sem esperar a recarga. Use junto com
+ * invalidateAfterWrite, que confirma com o servidor.
+ */
+export function replaceListItem<T extends { id: string }>(
+  queryKey: QueryKey,
+  item: T,
+) {
+  queryClient.setQueryData<T[]>(queryKey, (list) =>
+    list?.map((current) => (current.id === item.id ? item : current)),
+  );
+}

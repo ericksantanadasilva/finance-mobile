@@ -10,6 +10,7 @@ import { useColorScheme, View } from 'react-native';
 import { CenteredScreen } from '@/components/centered-screen';
 import { ErrorBox } from '@/components/error-box';
 import { Text } from '@/components/text';
+import { ToastProvider } from '@/components/toast';
 import { queryClient } from '@/lib/query-client';
 import { SessionProvider, useSession } from '@/lib/session-context';
 
@@ -29,7 +30,9 @@ export default function RootLayout() {
           {/* auto: ícones escuros no claro e claros no escuro; o fundo atrás
               da barra é a própria tela (edge-to-edge) */}
           <StatusBar style='auto' />
-          <RootNavigator />
+          <ToastProvider>
+            <RootNavigator />
+          </ToastProvider>
         </ThemeProvider>
       </SessionProvider>
     </QueryClientProvider>
