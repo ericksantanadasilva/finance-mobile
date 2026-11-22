@@ -1,12 +1,11 @@
-import { DateTimePicker } from '@expo/ui/community/datetime-picker';
 import { Calendar, X } from 'lucide-react-native';
-import { useUnstableNativeVariable } from 'nativewind';
 import { useState } from 'react';
-import { Pressable, useColorScheme, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
+import { DatePickerDialogView } from '@/components/date-picker-dialog';
 import { Icon } from '@/components/icon';
 import { Text } from '@/components/text';
-import { dateOnlyToLocal, localToDateOnly, todayISO } from '@/lib/dates';
+import { todayISO } from '@/lib/dates';
 import { formatDateOnly } from '@/lib/format';
 
 export type DateFieldProps = {
@@ -25,8 +24,7 @@ export type DateFieldProps = {
 
 /**
  * Data sem horário (DatePicker do web): mostra "dd/mm/aaaa" num campo com o
- * contorno do Input e abre o calendário nativo do Android (Material 3, do
- * @expo/ui, já incluído na build). No iOS o seletor aparece abaixo do campo.
+ * contorno do Input e abre o calendário nativo (ver DatePickerDialogView).
  */
 export function DateField({
   value,
@@ -38,9 +36,6 @@ export function DateField({
   disabled = false,
 }: DateFieldProps) {
   const [open, setOpen] = useState(false);
-  const colorScheme = useColorScheme();
-  // Dia selecionado em magenta, como o calendário do web
-  const accent: unknown = useUnstableNativeVariable('--highlight');
   const showClear = clearable && !!value && !disabled;
 
   return (
@@ -76,15 +71,11 @@ export function DateField({
       )}
       {open && (
         // O diálogo abre ao montar; escolher ou cancelar desmonta
-        <DateTimePicker
-          mode='date'
-          presentation='dialog'
-          value={dateOnlyToLocal(value ?? todayISO())}
-          accentColor={typeof accent === 'string' ? accent : undefined}
-          themeVariant={colorScheme === 'dark' ? 'dark' : 'light'}
-          onValueChange={(_, date) => {
+        <DatePickerDialogView
+          value={value ?? todayISO()}
+          onSelect={(selected) => {
             setOpen(false);
-            onChange(localToDateOnly(date));
+            onChange(selected);
           }}
           onDismiss={() => setOpen(false)}
         />
