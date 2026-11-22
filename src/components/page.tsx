@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
+import { BottomTabBarHeightContext } from 'expo-router/js-tabs';
 import { ArrowLeft } from 'lucide-react-native';
-import type { ReactNode } from 'react';
+import { use, type ReactNode } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,11 +20,14 @@ export type PageProps = {
 };
 
 /**
- * Página com título (h1 do web: Space Mono, minúsculas) e conteúdo rolável. O
- * respiro de baixo fica com a barra de abas, que já soma a área segura.
+ * Página com título (h1 do web: Space Mono, minúsculas) e conteúdo rolável. A
+ * barra de abas flutua por cima: o fim do conteúdo ganha a altura que ela
+ * cobre (já com a área segura), para o último item não ficar escondido.
  */
 export function Page({ title, back = false, children }: PageProps) {
   const insets = useSafeAreaInsets();
+  // Fora das abas não há barra: só a área segura
+  const tabBarHeight = use(BottomTabBarHeightContext) ?? insets.bottom;
 
   return (
     <ScrollView
@@ -31,7 +35,7 @@ export function Page({ title, back = false, children }: PageProps) {
       contentContainerStyle={{
         gap: PADDING,
         paddingTop: insets.top + PADDING,
-        paddingBottom: PADDING * 2,
+        paddingBottom: tabBarHeight + PADDING,
         paddingLeft: insets.left + PADDING,
         paddingRight: insets.right + PADDING,
       }}
