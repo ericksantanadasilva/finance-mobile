@@ -89,7 +89,7 @@ arquivos, como testar e uma sugestão de commit.
 - [x] **4c** Transações (`GET /transactions`, paginação e filtro de mês)
 - [x] **4d** Categorias (`GET /categories`, orçamento com barra de progresso)
 - [x] **4e** Recorrentes (`GET /recurring`)
-- [ ] **4f** Metas (`GET /goals`)
+- [x] **4f** Metas (`GET /goals`); cor da barra pelo ritmo (no ritmo, abaixo do ritmo, prazo vencido, concluída), com texto e ícone além da cor. Backend: migration `add_goal_created_at` (`Goal.createdAt`, metas antigas preenchidas pelo instante do cuid) e `createdAt` na rota mobile
 
 Toda tela: carregando (skeleton), vazio, erro e sucesso; puxar para atualizar;
 360px sem rolagem lateral; receita/despesa com seta; `R$` em pt-BR.
