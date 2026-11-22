@@ -94,6 +94,62 @@ arquivos, como testar e uma sugestão de commit.
 Toda tela: carregando (skeleton), vazio, erro e sucesso; puxar para atualizar;
 360px sem rolagem lateral; receita/despesa com seta; `R$` em pt-BR.
 
+### Etapa 5: escrita
+
+Depende das rotas de escrita do backend (Etapa 4 do `PLANO_API_MOBILE.md`).
+O que o app precisa de cada rota está em [ESCRITA_BACKEND.md](ESCRITA_BACKEND.md).
+
+- [ ] **5a** Base dos formulários: `Label`, campo de valor em R$, seletor de
+      data e de mês, diálogo/folha de baixo, confirmação destrutiva, aviso de
+      sucesso/erro; `useMutation` + invalidação das consultas afetadas. Decidir a
+      validação no app (Zod como no backend?) e se o seletor de data nativo
+      exige pacote com código nativo (build nova)
+- [ ] **5b** Lançar e editar transação (mês de competência, categoria existente
+      ou nova); mostrar o alerta de orçamento que volta na resposta
+- [ ] **5c** Marcar como pago/recebido (com desfazer) e excluir transação
+- [ ] **5d** Definir e remover o limite mensal de uma categoria
+- [ ] **5e** Recorrência: criar, pausar/retomar e excluir (o histórico fica)
+- [ ] **5f** Metas: criar e adicionar valor
+
+Todo formulário: validação com mensagem no campo, botão desativado e com
+"salvando..." durante o envio, sucesso visível, erro da API em `ErrorBox`,
+teclado sem cobrir o campo; ações destrutivas sempre com confirmação.
+
+### Etapa 6: notificações push (n8n)
+
+Depende do backend: `PushDevice`, `NotificationLog`, rotas `/devices`,
+`lib/push.ts`, rota `dispatch` e o workflow diário no n8n (Etapa 5 do
+`PLANO_API_MOBILE.md`).
+
+- [ ] **6a** `expo-notifications` (build nova), credenciais FCM no EAS, pedido de
+      permissão no momento certo (não na abertura do app)
+- [ ] **6b** Registrar o token (`POST /devices`) após o login e removê-lo
+      (`DELETE /devices/:id`) ao sair
+- [ ] **6c** Tocar na notificação abre a tela certa (recorrência a vencer →
+      Transações; orçamento → Categorias)
+- [ ] **6d** Preferências de aviso (quais tipos e com quantos dias de
+      antecedência), se o backend expuser em `PATCH /me`
+
+### Etapa 7: publicação
+
+- [ ] **7a** API em produção com HTTPS (VPS + reverse proxy), migrations
+      `add_mobile_session` e `add_goal_created_at` no banco de produção,
+      `MOBILE_JWT_SECRET` e `GOOGLE_MOBILE_CLIENT_IDS` no ambiente
+- [ ] **7b** Perfis `preview` e `production` no `eas.json`, com
+      `EXPO_PUBLIC_API_URL` (HTTPS) nas variáveis do EAS
+- [ ] **7c** Client Android do Google para a chave de produção (SHA-1 do EAS e,
+      se for para a Play Store, a da Play)
+- [ ] **7d** Build de produção (APK para instalar direto ou AAB para a Play
+      Store) e teste completo contra a API de produção
+
+### Etapa 8: acabamento
+
+- [ ] **8a** Ícone e splash com a logo FN (fundo do splash no tema, não o azul
+      do template; build nova)
+- [ ] **8b** (opcional) Rosca de categorias na Visão Geral com `react-native-svg`
+- [ ] **8c** Formas decorativas no login (magenta e roxo, como no web)
+- [ ] **8d** README com prints das telas nos dois modos
+
 ## Riscos e cuidados
 
 - **iOS 16**: o SDK 58 exige iOS 16.4+. O iPhone 8 vai até 16.7.x, então só
