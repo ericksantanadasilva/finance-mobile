@@ -352,3 +352,21 @@ export async function getRecurringRules() {
   const data = await apiFetch<{ rules: RecurringRule[] }>('/api/v1/recurring');
   return data.rules;
 }
+
+// ---------------------------------------------------------------------------
+// Metas
+
+export type Goal = {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  /** "YYYY-MM-DD" ou null (sem prazo). */
+  deadline: string | null;
+};
+
+/** Ordenadas por prazo (ordem do servidor, como no web). */
+export async function getGoals() {
+  const data = await apiFetch<{ goals: Goal[] }>('/api/v1/goals');
+  return data.goals;
+}
