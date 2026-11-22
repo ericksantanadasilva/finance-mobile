@@ -1,11 +1,12 @@
 import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
-import { useScrollToTop } from 'expo-router';
+import { router, useScrollToTop } from 'expo-router';
 import { BottomTabBarHeightContext } from 'expo-router/js-tabs';
 import {
   ArrowLeftRight,
   ArrowUp,
   CircleArrowDown,
   CircleArrowUp,
+  Plus,
   SearchX,
   Wallet,
 } from 'lucide-react-native';
@@ -55,7 +56,7 @@ import {
   type TransactionItem,
   type TransactionsPage,
 } from '@/lib/api';
-import { currentMonthISO } from '@/lib/dashboard';
+import { ALL_MONTHS, currentMonthISO } from '@/lib/dashboard';
 import { formatCurrency } from '@/lib/format';
 
 const PAGE_SIZE = 20;
@@ -141,6 +142,23 @@ export default function Transactions() {
       <PageHeader
         title='Transações'
         subtitle='Consulte e filtre seu histórico financeiro completo.'
+        action={
+          <Button
+            size='sm'
+            accessibilityLabel='nova transação'
+            onPress={() =>
+              router.push({
+                pathname: '/transaction',
+                // Lança na competência que está sendo vista
+                params:
+                  filters.month === ALL_MONTHS ? {} : { month: filters.month },
+              })
+            }
+          >
+            <Icon icon={Plus} />
+            nova
+          </Button>
+        }
       />
       <TransactionFilters
         value={filters}
@@ -221,7 +239,15 @@ export default function Transactions() {
         keyExtractor={(tx) => tx.id}
         renderItem={({ item, index }) => (
           <ListCardRow first={index === 0} dimmed={dimmed}>
-            <TransactionRow tx={item} />
+            <TransactionRow
+              tx={item}
+              onPress={() =>
+                router.push({
+                  pathname: '/transaction',
+                  params: { id: item.id },
+                })
+              }
+            />
           </ListCardRow>
         )}
         ListHeaderComponent={header}

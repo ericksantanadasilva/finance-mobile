@@ -1,4 +1,4 @@
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { CategoryBadge } from '@/components/category-badge';
 import { SkeletonText } from '@/components/skeleton';
@@ -17,11 +17,24 @@ function signedAmount(tx: TransactionItem) {
 /**
  * Linha compacta: descrição e valor na mesma linha; embaixo, menores, a data,
  * a categoria e os selos de status (quebram para a linha seguinte se não
- * couberem).
+ * couberem). Com `onPress`, a linha inteira é tocável (ex.: abrir a edição).
  */
-export function TransactionRow({ tx }: { tx: TransactionItem }) {
+export function TransactionRow({
+  tx,
+  onPress,
+}: {
+  tx: TransactionItem;
+  onPress?: () => void;
+}) {
   return (
-    <View className='flex-row items-center gap-3 px-4 py-3'>
+    <Pressable
+      disabled={!onPress}
+      onPress={onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityHint={onPress ? 'abre a edição' : undefined}
+      // Pressionado: fundo surface-muted, como o hover das linhas no web
+      className='flex-row items-center gap-3 px-4 py-3 active:bg-surface-muted'
+    >
       <TypeIcon type={tx.type} />
       <View className='flex-1 gap-1'>
         <View className='flex-row items-start gap-3'>
@@ -57,7 +70,7 @@ export function TransactionRow({ tx }: { tx: TransactionItem }) {
           />
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

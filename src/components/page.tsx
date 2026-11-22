@@ -88,10 +88,17 @@ export type PageHeaderProps = {
   back?: boolean;
   /** Linha de apoio abaixo do título. */
   subtitle?: string;
+  /** Ação principal da página, à direita do título (ex.: "novo"). */
+  action?: ReactNode;
 };
 
 /** Título da página (h1 do web: Space Mono, minúsculas). */
-export function PageHeader({ title, back = false, subtitle }: PageHeaderProps) {
+export function PageHeader({
+  title,
+  back = false,
+  subtitle,
+  action,
+}: PageHeaderProps) {
   return (
     <View className='flex-row items-center gap-3'>
       {back && (
@@ -104,7 +111,7 @@ export function PageHeader({ title, back = false, subtitle }: PageHeaderProps) {
           <Icon icon={ArrowLeft} />
         </Button>
       )}
-      <View className='shrink gap-0.5'>
+      <View className='flex-1 gap-0.5'>
         <Text variant='title' className='text-xl lowercase'>
           {title}
         </Text>
@@ -114,6 +121,7 @@ export function PageHeader({ title, back = false, subtitle }: PageHeaderProps) {
           </Text>
         )}
       </View>
+      {action}
     </View>
   );
 }

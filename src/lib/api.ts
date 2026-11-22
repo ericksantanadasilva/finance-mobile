@@ -307,6 +307,46 @@ export function getTransactions(
   return apiFetch<TransactionsPage>(`/api/v1/transactions?${params}`);
 }
 
+/** Body de lançamento e de edição (transactionBodySchema do backend). */
+export type TransactionInput = {
+  /** 1 a 200 caracteres. */
+  description: string;
+  /** > 0, até 2 casas. */
+  amount: number;
+  /** "YYYY-MM-DD": data da compra. */
+  date: string;
+  type: 'income' | 'expense';
+  /** Nome (1 a 50); o servidor cria a categoria se não existir. */
+  category: string;
+  /** "YYYY-MM": mês de competência. */
+  referenceMonth: string;
+};
+
+/** Despesa que passou de 80% do limite da categoria no mês de competência. */
+export type BudgetAlert = {
+  category: string;
+  spent: number;
+  budget: number;
+  /** Em 2 casas (arredondado no servidor). */
+  percent: number;
+};
+
+/** 201 com a transação no formato da lista e o alerta de orçamento, se houver. */
+export function createTransaction(input: TransactionInput) {
+  return apiFetch<{
+    transaction: TransactionItem;
+    budgetAlert: BudgetAlert | null;
+  }>('/api/v1/transactions', { method: 'POST', body: input });
+}
+
+/** Edição completa (o app sempre manda todos os campos). */
+export function updateTransaction(id: string, input: TransactionInput) {
+  return apiFetch<{ transaction: TransactionItem }>(
+    `/api/v1/transactions/${encodeURIComponent(id)}`,
+    { method: 'PATCH', body: input },
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Categorias
 
