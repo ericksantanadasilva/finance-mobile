@@ -329,3 +329,26 @@ export async function getCategories(month?: string) {
   );
   return data.categories;
 }
+
+// ---------------------------------------------------------------------------
+// Recorrentes
+
+export type RecurringRule = {
+  id: string;
+  description: string;
+  amount: number;
+  type: 'income' | 'expense';
+  dayOfMonth: number;
+  /** "YYYY-MM". */
+  startMonth: string;
+  active: boolean;
+  /** "YYYY-MM" do último mês gerado, ou null se nunca gerou. */
+  lastGeneratedMonth: string | null;
+  category: { name: string; color: string } | null;
+};
+
+/** Ativas primeiro, depois por descrição (ordem do servidor, como no web). */
+export async function getRecurringRules() {
+  const data = await apiFetch<{ rules: RecurringRule[] }>('/api/v1/recurring');
+  return data.rules;
+}

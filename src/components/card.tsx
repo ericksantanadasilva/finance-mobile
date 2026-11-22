@@ -7,11 +7,17 @@ import { type HardShadowSize, useHardShadow } from '@/lib/hard-shadow';
 export type CardProps = ViewProps & {
   /** md (padrão); lg em diálogos e no card de login. */
   shadow?: HardShadowSize;
+  /**
+   * Plano (borda fina, sem sombra): item secundário ou inativo, pela regra de
+   * elevação (ex.: recorrência pausada).
+   */
+  flat?: boolean;
 };
 
 /** Card adesivo: contorno ink e sombra dura. */
 export function Card({
   shadow: shadowSize = 'md',
+  flat = false,
   className,
   style,
   ...props
@@ -20,8 +26,8 @@ export function Card({
   return (
     <View
       {...props}
-      className={`rounded-2xl border-2 border-ink bg-surface ${className ?? ''}`}
-      style={[shadow, style]}
+      className={`rounded-2xl border-2 bg-surface ${flat ? 'border-border-custom' : 'border-ink'} ${className ?? ''}`}
+      style={[flat ? undefined : shadow, style]}
     />
   );
 }
