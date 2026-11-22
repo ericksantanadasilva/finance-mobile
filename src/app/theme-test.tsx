@@ -13,12 +13,14 @@ import { Card, CardContent, CardHeader } from '@/components/card';
 import { CategoryBadge } from '@/components/category-badge';
 import { EmptyState } from '@/components/empty-state';
 import { ErrorBox } from '@/components/error-box';
+import { GoalCard } from '@/components/goals/goal-card';
 import { Icon } from '@/components/icon';
 import { SkeletonText } from '@/components/skeleton';
 import { StatCard, StatCardSkeleton } from '@/components/stat-card';
 import { Text as AppText } from '@/components/text';
 import { TypeIcon } from '@/components/type-icon';
 import { useHardShadow } from '@/lib/hard-shadow';
+import type { Goal } from '@/lib/api';
 import { formatCurrency } from '@/lib/format';
 
 // PROVISÓRIO (Etapa 3): vitrine para provar o NativeWind no SDK 58, os tokens
@@ -39,6 +41,75 @@ const ACCENTS = [
   ['bg-ai', 'text-ai-foreground', 'ai'],
   ['bg-danger', 'text-danger-foreground', 'danger'],
 ] as const;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** "YYYY-MM-DD" a `days` dias de hoje (negativo = no passado), no fuso local. */
+function dateFromToday(days: number) {
+  const d = new Date(Date.now() + days * DAY_MS);
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${d.getFullYear()}-${month}-${day}`;
+}
+
+/**
+ * Metas fictícias, uma por situação do ritmo. Datas relativas a hoje: criadas
+ * há 180 dias com prazo daqui a 180, o esperado fica em torno de 50%.
+ */
+function sampleGoals(): Goal[] {
+  const createdAt = new Date(Date.now() - 180 * DAY_MS).toISOString();
+  const deadline = dateFromToday(180);
+  return [
+    {
+      id: 'on-track',
+      name: 'No ritmo (60% de ~50%)',
+      targetAmount: 10000,
+      currentAmount: 6000,
+      deadline,
+      createdAt,
+    },
+    {
+      id: 'behind',
+      name: 'Abaixo do ritmo (30% de ~50%)',
+      targetAmount: 10000,
+      currentAmount: 3000,
+      deadline,
+      createdAt,
+    },
+    {
+      id: 'overdue',
+      name: 'Prazo vencido (ontem)',
+      targetAmount: 10000,
+      currentAmount: 7000,
+      deadline: dateFromToday(-1),
+      createdAt,
+    },
+    {
+      id: 'done',
+      name: 'Concluída',
+      targetAmount: 5000,
+      currentAmount: 5000,
+      deadline,
+      createdAt,
+    },
+    {
+      id: 'no-deadline',
+      name: 'Sem prazo (5%)',
+      targetAmount: 20000,
+      currentAmount: 1000,
+      deadline: null,
+      createdAt,
+    },
+    // Backend sem a migration: com prazo, mas sem createdAt → income, sem aviso
+    {
+      id: 'no-created-at',
+      name: 'Sem data de criação (30%)',
+      targetAmount: 10000,
+      currentAmount: 3000,
+      deadline,
+    },
+  ];
+}
 
 export default function ThemeTest() {
   const scheme = useColorScheme();
@@ -379,6 +450,18 @@ export default function ThemeTest() {
         message='Sem conexão com o servidor. Verifique a internet.'
         onRetry={press}
       />
+
+      <AppText variant='title' className='text-lg lowercase'>
+        8. metas: cor pelo ritmo
+      </AppText>
+      <AppText tone='muted' className='text-sm'>
+        dados fictícios; criadas há 180 dias, prazo daqui a 180 (esperado ~50%)
+      </AppText>
+      <View className='gap-6 pb-1 pr-1'>
+        {sampleGoals().map((goal) => (
+          <GoalCard key={goal.id} goal={goal} />
+        ))}
+      </View>
 
       <Link href='/' className='py-2 text-base text-foreground underline'>
         voltar

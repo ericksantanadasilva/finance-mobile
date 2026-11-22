@@ -363,6 +363,11 @@ export type Goal = {
   currentAmount: number;
   /** "YYYY-MM-DD" ou null (sem prazo). */
   deadline: string | null;
+  /**
+   * ISO; início do ritmo (metas antigas: o instante embutido no id). Opcional:
+   * backend sem a migration add_goal_created_at não manda.
+   */
+  createdAt?: string;
 };
 
 /** Ordenadas por prazo (ordem do servidor, como no web). */

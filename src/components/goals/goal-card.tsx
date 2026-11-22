@@ -1,4 +1,10 @@
-import { Calendar, CircleCheck, Target } from 'lucide-react-native';
+import {
+  Calendar,
+  CalendarX,
+  CircleCheck,
+  Target,
+  TriangleExclamationPoint,
+} from 'lucide-react-native';
 import { View } from 'react-native';
 
 import { Card, CardContent, CardHeader } from '@/components/card';
@@ -8,23 +14,31 @@ import { SkeletonText } from '@/components/skeleton';
 import { Text } from '@/components/text';
 import type { Goal } from '@/lib/api';
 import { formatCurrency, formatDateOnly } from '@/lib/format';
+import { goalPace, goalProgress, type GoalPace } from '@/lib/goals';
 
-/**
- * Progresso inteiro, para baixo (99,9% mostra 99%, nunca 100% antes da hora),
- * limitado a 100. O resíduo de ponto flutuante sai antes do floor: 29% pode
- * chegar como 28.999999999999996 e não pode virar 28%.
- */
-export function goalProgress(goal: Goal) {
-  if (goal.targetAmount <= 0) return 0;
-  const percent = (goal.currentAmount / goal.targetAmount) * 100;
-  return Math.min(Math.floor(Math.round(percent * 100) / 100), 100);
+// Cor da barra pelo ritmo, nunca pela porcentagem pura (meta no começo não é
+// problema). A cor só reforça: abaixo do ritmo e vencida têm texto e ícone
+function barClassName(pace: GoalPace) {
+  if (pace.status === 'overdue') return 'bg-expense';
+  if (pace.status === 'behind') return 'bg-warning';
+  return 'bg-income';
 }
 
-/** Meta (card do web): acumulado em destaque, objetivo ao lado, barra e prazo. */
+function paceLabel(pace: GoalPace) {
+  if (pace.status === 'overdue') return ', prazo vencido';
+  if (pace.status === 'behind') return ', abaixo do ritmo';
+  return '';
+}
+
+/**
+ * Meta (card do web): acumulado em destaque, objetivo ao lado, barra e prazo.
+ * Nas metas com prazo, a barra segue o ritmo (ver lib/goals).
+ */
 export function GoalCard({ goal }: { goal: Goal }) {
   const progress = goalProgress(goal);
+  const pace = goalPace(goal);
   // Concluída pelos valores, não pela porcentagem exibida
-  const isDone = goal.currentAmount >= goal.targetAmount;
+  const isDone = pace.status === 'done';
 
   return (
     <Card>
@@ -71,7 +85,8 @@ export function GoalCard({ goal }: { goal: Goal }) {
         <View className='gap-3'>
           <ProgressBar
             value={progress}
-            label={`progresso da meta ${goal.name}`}
+            label={`progresso da meta ${goal.name}${paceLabel(pace)}`}
+            barClassName={barClassName(pace)}
           />
           {/* min-h-6: a mesma altura com o selo "concluída" ou só com a porcentagem */}
           <View className='min-h-6 flex-row items-center justify-between gap-3'>
@@ -98,13 +113,47 @@ export function GoalCard({ goal }: { goal: Goal }) {
               </Text>
             )}
           </View>
+          {pace.status === 'behind' && (
+            <PaceNote
+              tone='warning'
+              icon={TriangleExclamationPoint}
+              text={`Abaixo do ritmo · esperado ${pace.expected}% até hoje`}
+            />
+          )}
+          {pace.status === 'overdue' && (
+            <PaceNote tone='expense' icon={CalendarX} text='Prazo vencido' />
+          )}
         </View>
       </CardContent>
     </Card>
   );
 }
 
-/** Mesma estrutura do card carregado, para a altura bater. */
+/** Situação do ritmo em texto e ícone, além da cor da barra. */
+function PaceNote({
+  tone,
+  icon,
+  text,
+}: {
+  tone: 'warning' | 'expense';
+  icon: typeof CalendarX;
+  text: string;
+}) {
+  return (
+    <View className='flex-row items-center gap-1.5'>
+      <Icon icon={icon} tone={tone} size={14} />
+      <Text
+        variant='value'
+        tone={tone}
+        className='shrink text-xs font-bold lowercase'
+      >
+        {text}
+      </Text>
+    </View>
+  );
+}
+
+/** Mesma estrutura do card carregado (sem a linha do ritmo), para a altura bater. */
 export function GoalCardSkeleton() {
   return (
     <Card>
