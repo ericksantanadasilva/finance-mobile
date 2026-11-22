@@ -6,6 +6,11 @@ import { Text } from '@/components/text';
 // classe, não uma cor). Só hex vai para o style: cor inválida dá erro no RN.
 const HEX_COLOR = /^#(?:[0-9a-f]{3}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 
+/** A cor da categoria, se for um hex válido; senão undefined (use o token muted). */
+export function categoryColor(color?: string | null) {
+  return color && HEX_COLOR.test(color) ? color : undefined;
+}
+
 export type CategoryBadgeProps = {
   name?: string | null;
   color?: string | null;
@@ -17,7 +22,7 @@ export type CategoryBadgeProps = {
  * cadastrado (sem forçar caixa).
  */
 export function CategoryBadge({ name, color }: CategoryBadgeProps) {
-  const valid = color && HEX_COLOR.test(color) ? color : undefined;
+  const valid = categoryColor(color);
 
   return (
     <View

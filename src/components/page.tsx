@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
 import { BottomTabBarHeightContext } from 'expo-router/js-tabs';
 import { ArrowLeft } from 'lucide-react-native';
-import { use, type ReactNode } from 'react';
-import { ScrollView, View } from 'react-native';
+import { useUnstableNativeVariable } from 'nativewind';
+import { use, useState, type ReactNode } from 'react';
+import { RefreshControl, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
@@ -16,6 +17,10 @@ export type PageProps = {
   title: string;
   /** Mostra o botão de voltar (telas empilhadas, ex.: categorias em "mais"). */
   back?: boolean;
+  /** Linha de apoio abaixo do título. */
+  subtitle?: string;
+  /** Liga o "puxar para atualizar"; o indicador some quando a promessa termina. */
+  onRefresh?: () => Promise<unknown>;
   children: ReactNode;
 };
 
@@ -24,14 +29,51 @@ export type PageProps = {
  * barra de abas flutua por cima: o fim do conteúdo ganha a altura que ela
  * cobre (já com a área segura), para o último item não ficar escondido.
  */
-export function Page({ title, back = false, children }: PageProps) {
+export function Page({
+  title,
+  back = false,
+  subtitle,
+  onRefresh,
+  children,
+}: PageProps) {
   const insets = useSafeAreaInsets();
   // Fora das abas não há barra: só a área segura
   const tabBarHeight = use(BottomTabBarHeightContext) ?? insets.bottom;
+  const [refreshing, setRefreshing] = useState(false);
+  // O indicador nativo recebe cor por prop: lida dos tokens
+  const spinner: unknown = useUnstableNativeVariable('--foreground');
+  const spinnerBackground: unknown = useUnstableNativeVariable('--surface');
+
+  async function handleRefresh() {
+    if (!onRefresh) return;
+    setRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   return (
     <ScrollView
       className='flex-1 bg-background'
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            // Abaixo da barra de status (o app desenha atrás dela)
+            progressViewOffset={insets.top}
+            colors={typeof spinner === 'string' ? [spinner] : undefined}
+            tintColor={typeof spinner === 'string' ? spinner : undefined}
+            progressBackgroundColor={
+              typeof spinnerBackground === 'string'
+                ? spinnerBackground
+                : undefined
+            }
+          />
+        ) : undefined
+      }
       contentContainerStyle={{
         gap: PADDING,
         paddingTop: insets.top + PADDING,
@@ -51,9 +93,16 @@ export function Page({ title, back = false, children }: PageProps) {
             <Icon icon={ArrowLeft} />
           </Button>
         )}
-        <Text variant='title' className='shrink text-xl lowercase'>
-          {title}
-        </Text>
+        <View className='shrink gap-0.5'>
+          <Text variant='title' className='text-xl lowercase'>
+            {title}
+          </Text>
+          {subtitle && (
+            <Text tone='muted' className='text-xs font-medium'>
+              {subtitle}
+            </Text>
+          )}
+        </View>
       </View>
       {children}
     </ScrollView>

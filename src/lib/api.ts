@@ -226,3 +226,22 @@ export async function logout() {
 export function getMe() {
   return apiFetch<User>('/api/v1/me');
 }
+
+// ---------------------------------------------------------------------------
+// Visão Geral
+
+/** Soma por mês de competência, tipo e categoria (getDashboardTotals do web). */
+export type DashboardTotal = {
+  /** ISO; dia 1 do mês de competência, ao meio-dia do fuso do servidor. */
+  referenceDate: string;
+  type: 'income' | 'expense';
+  amount: number;
+  category: { name: string; color: string } | null;
+};
+
+export async function getDashboard() {
+  const data = await apiFetch<{ totals: DashboardTotal[] }>(
+    '/api/v1/dashboard',
+  );
+  return data.totals;
+}
