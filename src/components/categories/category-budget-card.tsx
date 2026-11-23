@@ -1,6 +1,7 @@
-import { TriangleExclamationPoint } from 'lucide-react-native';
-import { View } from 'react-native';
+import { Pencil, Plus, TriangleExclamationPoint } from 'lucide-react-native';
+import { Pressable, View } from 'react-native';
 
+import { Button } from '@/components/button';
 import { Card, CardContent, CardHeader } from '@/components/card';
 import { CategoryBadge, categoryColor } from '@/components/category-badge';
 import { Icon } from '@/components/icon';
@@ -29,8 +30,21 @@ function budgetTone(percent: number) {
   return { bar: 'bg-income', text: 'income' } as const;
 }
 
-/** Card da categoria: faixa com a cor e o nome; gasto e limite do mês. */
-export function CategoryBudgetCard({ category }: { category: CategoryBudget }) {
+// O lápis tem 16px: alcança o alvo de toque de ~44px sem crescer a faixa
+const EDIT_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
+
+/**
+ * Card da categoria: faixa com a cor e o nome; gasto e limite do mês. Com
+ * `onEditBudget`, o lápis (com limite) ou "definir limite mensal" (sem) abrem
+ * o formulário do limite.
+ */
+export function CategoryBudgetCard({
+  category,
+  onEditBudget,
+}: {
+  category: CategoryBudget;
+  onEditBudget?: () => void;
+}) {
   const percent = budgetPercent(category);
   const color = categoryColor(category.color);
 
@@ -52,6 +66,17 @@ export function CategoryBudgetCard({ category }: { category: CategoryBudget }) {
             {category.name}
           </Text>
         </View>
+        {onEditBudget && !!category.budget && (
+          <Pressable
+            accessibilityRole='button'
+            accessibilityLabel={`alterar limite de ${category.name}`}
+            hitSlop={EDIT_HIT_SLOP}
+            onPress={onEditBudget}
+            className='rounded-md p-1 active:opacity-60'
+          >
+            <Icon icon={Pencil} tone='band-foreground' />
+          </Pressable>
+        )}
       </CardHeader>
       <CardContent className='p-4'>
         {category.budget && percent !== null ? (
@@ -61,6 +86,16 @@ export function CategoryBudgetCard({ category }: { category: CategoryBudget }) {
             budget={category.budget}
             percent={percent}
           />
+        ) : onEditBudget ? (
+          <Button
+            variant='outline'
+            size='sm'
+            accessibilityLabel={`definir limite mensal de ${category.name}`}
+            onPress={onEditBudget}
+          >
+            <Icon icon={Plus} tone='muted' />
+            definir limite mensal
+          </Button>
         ) : (
           <Text tone='muted' className='text-xs font-medium'>
             Sem limite mensal

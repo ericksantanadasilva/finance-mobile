@@ -385,6 +385,23 @@ export async function getCategories(month?: string) {
   return data.categories;
 }
 
+/**
+ * Define/altera (`budget` > 0) ou remove (`null`) o limite mensal. O limite
+ * vale para todos os meses; `month` só escolhe o gasto que volta na resposta.
+ */
+export async function setCategoryBudget(
+  id: string,
+  budget: number | null,
+  month?: string,
+) {
+  const query = month ? `?month=${encodeURIComponent(month)}` : '';
+  const data = await apiFetch<{ category: CategoryBudget }>(
+    `/api/v1/categories/${encodeURIComponent(id)}${query}`,
+    { method: 'PATCH', body: { budget } },
+  );
+  return data.category;
+}
+
 // ---------------------------------------------------------------------------
 // Recorrentes
 

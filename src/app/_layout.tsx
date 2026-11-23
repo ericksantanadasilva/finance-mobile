@@ -57,6 +57,10 @@ function RootNavigator() {
         <Stack.Screen name='(tabs)' />
         {/* Formulário por cima das abas (sobe de baixo no Android) */}
         <Stack.Screen name='transaction' options={{ presentation: 'modal' }} />
+        <Stack.Screen
+          name='category-budget'
+          options={{ presentation: 'modal' }}
+        />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name='login' />

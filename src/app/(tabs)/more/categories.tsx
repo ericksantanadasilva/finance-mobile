@@ -1,4 +1,5 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import { Tags } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
@@ -112,7 +113,21 @@ export default function Categories() {
               />
             )}
             {categories.map((category) => (
-              <CategoryBudgetCard key={category.id} category={category} />
+              <CategoryBudgetCard
+                key={category.id}
+                category={category}
+                // Esmaecido, o card ainda é do mês anterior: o formulário não
+                // acharia a categoria no mês novo
+                onEditBudget={
+                  dimmed
+                    ? undefined
+                    : () =>
+                        router.push({
+                          pathname: '/category-budget',
+                          params: { id: category.id, month },
+                        })
+                }
+              />
             ))}
           </View>
         </>
