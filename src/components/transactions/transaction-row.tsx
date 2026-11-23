@@ -8,15 +8,9 @@ import { useToast } from '@/components/toast';
 import { TransactionStatus } from '@/components/transaction-status';
 import { TypeIcon } from '@/components/type-icon';
 import { ApiError, setTransactionPaid, type TransactionItem } from '@/lib/api';
-import { formatCurrency, formatDateOnly } from '@/lib/format';
+import { formatDateOnly, signedAmount } from '@/lib/format';
 import { writeErrorMessage } from '@/lib/forms';
 import { invalidateAfterWrite } from '@/lib/query-client';
-
-/** Valor com sinal na despesa, como no web ("- R$ 50,00"). */
-function signedAmount(tx: TransactionItem) {
-  const value = formatCurrency(tx.amount);
-  return tx.type === 'expense' ? `- ${value}` : value;
-}
 
 /** Sem rede ou item apagado: a mensagem do formulário serve; o resto, a do web. */
 function paidErrorMessage(error: Error) {

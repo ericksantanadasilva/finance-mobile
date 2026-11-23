@@ -355,6 +355,13 @@ export function setTransactionPaid(id: string, isPaid: boolean) {
   );
 }
 
+/** Exclui a transação (204, sem corpo). Não há como desfazer. */
+export function deleteTransaction(id: string) {
+  return apiFetch<void>(`/api/v1/transactions/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Categorias
 

@@ -1,21 +1,26 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
+import { Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { CategorySelect } from '@/components/category-select';
 import { ChipSelect } from '@/components/chip-select';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { DateField } from '@/components/date-field';
 import { ErrorBox } from '@/components/error-box';
 import { FormField } from '@/components/form-field';
+import { Icon } from '@/components/icon';
 import { Input } from '@/components/input';
 import { MoneyInput } from '@/components/money-input';
 import { Text } from '@/components/text';
 import { useToast } from '@/components/toast';
+import { TypeIcon } from '@/components/type-icon';
 import { TypeSelect, type TransactionType } from '@/components/type-select';
 import {
   createTransaction,
+  deleteTransaction,
   getCategories,
   updateTransaction,
   type BudgetAlert,
@@ -125,7 +130,30 @@ export function TransactionForm({
       if (budgetAlert) toast.show('warning', budgetAlertMessage(budgetAlert));
     },
   });
-  const saving = mutation.isPending;
+
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const removal = useMutation({
+    mutationFn: (id: string) => deleteTransaction(id),
+    onMutate: () => onSavingChange?.(true),
+    onSettled: () => onSavingChange?.(false),
+    onSuccess: () => {
+      void invalidateAfterWrite('transaction');
+      toast.show('success', 'Transação excluída.');
+    },
+  });
+
+  const saving = mutation.isPending || removal.isPending;
+
+  function confirmDelete() {
+    if (!transaction) return;
+    removal.mutate(transaction.id, {
+      // Como no salvar: não volta uma a mais se a tela já fechou
+      onSuccess: () => {
+        setConfirmingDelete(false);
+        router.back();
+      },
+    });
+  }
 
   function clearError(field: Field) {
     setErrors((current) => ({ ...current, [field]: undefined }));
@@ -277,8 +305,67 @@ export function TransactionForm({
           accessibilityState={{ disabled: saving, busy: saving }}
           onPress={submit}
         >
-          {saving ? 'salvando...' : 'salvar'}
+          {mutation.isPending ? 'salvando...' : 'salvar'}
         </Button>
+      </View>
+
+      {transaction && (
+        <>
+          {/* Separada de cancelar/salvar, para não ser tocada por engano */}
+          <View className='border-t border-border-custom pt-5'>
+            <Button
+              variant='expense'
+              className='self-start px-4'
+              disabled={saving}
+              onPress={() => {
+                removal.reset();
+                setConfirmingDelete(true);
+              }}
+            >
+              <Icon icon={Trash2} tone='expense' />
+              excluir transação
+            </Button>
+          </View>
+          <ConfirmDialog
+            open={confirmingDelete}
+            title='Excluir transação'
+            detail={<DeleteDetail transaction={transaction} />}
+            description={
+              transaction.recurringRuleId
+                ? 'Só esta ocorrência será removida; a recorrência continua. Essa ação não poderá ser desfeita.'
+                : 'Tem certeza que deseja remover esta transação? Essa ação não poderá ser desfeita.'
+            }
+            loading={removal.isPending}
+            error={removal.error ? writeErrorMessage(removal.error) : undefined}
+            onConfirm={confirmDelete}
+            onClose={() => setConfirmingDelete(false)}
+          />
+        </>
+      )}
+    </View>
+  );
+}
+
+/**
+ * A transação a excluir, como na linha da lista: seta do tipo (o sentido não
+ * fica só no sinal ou na cor), descrição e, embaixo, o valor.
+ */
+function DeleteDetail({ transaction }: { transaction: TransactionItem }) {
+  return (
+    <View className='flex-row items-center gap-3 rounded-xl border border-border-custom p-3'>
+      <TypeIcon type={transaction.type} />
+      <View className='flex-1 gap-0.5'>
+        {/* Dado do usuário: como foi cadastrado */}
+        <Text numberOfLines={2} className='text-sm font-bold'>
+          {transaction.description}
+        </Text>
+        <Text
+          variant='value'
+          tone={transaction.type === 'income' ? 'income' : 'expense'}
+          className='text-sm font-bold'
+        >
+          {formatCurrency(transaction.amount)}
+        </Text>
       </View>
     </View>
   );

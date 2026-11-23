@@ -9,6 +9,15 @@ export function formatCurrency(value: number): string {
   return currency.format(value);
 }
 
+/** Valor com sinal na despesa, como no web ("- R$ 50,00"). */
+export function signedAmount(tx: {
+  amount: number;
+  type: 'income' | 'expense';
+}): string {
+  const value = formatCurrency(tx.amount);
+  return tx.type === 'expense' ? `- ${value}` : value;
+}
+
 /**
  * Data sem horário ("dd/mm/aaaa"), lida em UTC como o formatDateOnly do web:
  * gravada ao meio-dia UTC (ou meia-noite nos registros antigos), o dia não
