@@ -1,5 +1,5 @@
 import { keepPreviousData, useInfiniteQuery } from '@tanstack/react-query';
-import { router, useScrollToTop } from 'expo-router';
+import { router, useLocalSearchParams, useScrollToTop } from 'expo-router';
 import { BottomTabBarHeightContext } from 'expo-router/js-tabs';
 import {
   ArrowLeftRight,
@@ -63,6 +63,7 @@ const PAGE_SIZE = 20;
 const SKELETON_ROWS = 6;
 // Busca e faixa de valor esperam o usuário parar de digitar (como no web)
 const SEARCH_DEBOUNCE_MS = 400;
+const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 
 function errorMessage(error: Error) {
   // Sem resposta (rede, tempo esgotado): a mensagem já é para o usuário
@@ -133,6 +134,43 @@ export default function Transactions() {
   // Tocar de novo na aba "transações" volta ao topo (como no Instagram)
   const listRef = useRef<FlatList<TransactionItem>>(null);
   useScrollToTop(listRef);
+
+  // Pedido de outra tela (ex.: "ver pendentes" da Visão Geral), como um link
+  // novo no web: aplica sobre os filtros padrão, apaga da rota (para não
+  // reaplicar ao voltar) e volta ao topo
+  const params = useLocalSearchParams<{ status?: string; month?: string }>();
+  const requestedStatus =
+    params.status === 'pending' || params.status === 'paid'
+      ? params.status
+      : undefined;
+  const requestedMonth =
+    params.month === ALL_MONTHS || (params.month && MONTH.test(params.month))
+      ? params.month
+      : undefined;
+  const request =
+    requestedStatus || requestedMonth
+      ? `${requestedStatus ?? ''}|${requestedMonth ?? ''}`
+      : null;
+  // Ajuste de estado na renderização (e não num efeito) quando o pedido muda
+  const [appliedRequest, setAppliedRequest] = useState<string | null>(null);
+  if (request !== appliedRequest) {
+    setAppliedRequest(request);
+    if (request) {
+      setSearch('');
+      setDebouncedSearch('');
+      setFilters({
+        ...defaultFilters(currentMonth),
+        ...(requestedStatus ? { status: requestedStatus } : {}),
+        ...(requestedMonth ? { month: requestedMonth } : {}),
+      });
+    }
+  }
+  useEffect(() => {
+    if (!request) return;
+    router.setParams({ status: undefined, month: undefined });
+    listRef.current?.scrollToOffset({ offset: 0, animated: false });
+  }, [request]);
+
   // Botão "voltar ao topo": só depois de rolar uma tela e meia
   const { height: screenHeight } = useWindowDimensions();
   const [showToTop, setShowToTop] = useState(false);

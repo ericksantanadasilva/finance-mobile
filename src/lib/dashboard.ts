@@ -14,33 +14,54 @@ export function currentMonthISO(now = new Date()) {
   return `${now.getFullYear()}-${month}`;
 }
 
-/** Saldo, receitas e despesas do mês atual. */
+/** Pendentes de um tipo: total até o mês atual e quanto disso é atrasado. */
+export type PendingSummary = { total: number; overdue: number };
+
+/**
+ * Cards da Visão Geral (os do web). Receitas e despesas do mês contam tudo
+ * (competência); o saldo conta só o pago, com competência até o mês atual
+ * (a futura não entra). Pendentes: não pagas até o mês atual; as de meses
+ * anteriores são as atrasadas. Previsto = saldo + a receber − a pagar.
+ * Sem `isPaid` (backend sem a 4i), o total conta como pago.
+ */
 export function currentMonthSummary(
   totals: DashboardTotal[],
   now = new Date(),
 ) {
-  const current = totals.filter((t) => {
-    const ref = new Date(t.referenceDate);
-    return (
-      ref.getMonth() === now.getMonth() &&
-      ref.getFullYear() === now.getFullYear()
-    );
-  });
+  const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  const untilNow = totals.filter(
+    (t) => new Date(t.referenceDate) < startOfNextMonth,
+  );
+  const isPrevious = (t: DashboardTotal) =>
+    new Date(t.referenceDate) < startOfCurrentMonth;
+  const isPaid = (t: DashboardTotal) => t.isPaid ?? true;
 
+  const current = untilNow.filter((t) => !isPrevious(t));
   const income = sum(current.filter((t) => t.type === 'income'));
   const expense = sum(current.filter((t) => t.type === 'expense'));
 
-  // Sobra acumulada dos meses anteriores (competência futura não entra)
-  const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const previousBalance = totals
-    .filter((t) => new Date(t.referenceDate) < startOfCurrentMonth)
-    .reduce((acc, t) => acc + (t.type === 'income' ? t.amount : -t.amount), 0);
+  const paid = untilNow.filter(isPaid);
+  const balance = signedSum(paid);
+  const previousBalance = signedSum(paid.filter(isPrevious));
+
+  const pending = untilNow.filter((t) => !isPaid(t));
+  const pendingOf = (type: DashboardTotal['type']): PendingSummary => {
+    const ofType = pending.filter((t) => t.type === type);
+    return { total: sum(ofType), overdue: sum(ofType.filter(isPrevious)) };
+  };
+  const toPay = pendingOf('expense');
+  const toReceive = pendingOf('income');
 
   return {
     income,
     expense,
+    balance,
     previousBalance,
-    balance: previousBalance + income - expense,
+    toPay,
+    toReceive,
+    hasPending: pending.length > 0,
+    forecast: balance + toReceive.total - toPay.total,
   };
 }
 
@@ -130,4 +151,12 @@ export function shortMonthLabel(month: string) {
 
 function sum(totals: DashboardTotal[]) {
   return totals.reduce((acc, t) => acc + t.amount, 0);
+}
+
+/** Receita soma, despesa subtrai. */
+function signedSum(totals: DashboardTotal[]) {
+  return totals.reduce(
+    (acc, t) => acc + (t.type === 'income' ? t.amount : -t.amount),
+    0,
+  );
 }

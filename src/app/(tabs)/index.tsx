@@ -18,6 +18,10 @@ import {
   MonthlyFlowCard,
   MonthlyFlowCardSkeleton,
 } from '@/components/dashboard/monthly-flow-card';
+import {
+  PendingCard,
+  PendingCardSkeleton,
+} from '@/components/dashboard/pending-card';
 import { EmptyState } from '@/components/empty-state';
 import { ErrorBox } from '@/components/error-box';
 import { Icon } from '@/components/icon';
@@ -59,6 +63,8 @@ export default function Overview() {
           <StatCardSkeleton hasNote />
           <StatCardSkeleton />
           <StatCardSkeleton />
+          <PendingCardSkeleton />
+          <StatCardSkeleton hasNote />
           <MonthlyFlowCardSkeleton />
           <CategoryCardSkeleton />
         </>
@@ -91,10 +97,8 @@ export default function Overview() {
 }
 
 function Summary({ totals, now }: { totals: DashboardTotal[]; now: Date }) {
-  const { balance, previousBalance, income, expense } = currentMonthSummary(
-    totals,
-    now,
-  );
+  const summary = currentMonthSummary(totals, now);
+  const { balance, previousBalance, income, expense } = summary;
 
   return (
     <>
@@ -102,7 +106,7 @@ function Summary({ totals, now }: { totals: DashboardTotal[]; now: Date }) {
         label='Saldo Atual'
         icon={<Icon icon={Wallet} tone='band-foreground' />}
         value={formatCurrency(balance)}
-        note={`Meses anteriores: ${formatCurrency(previousBalance)}`}
+        note={`Conta só o que foi pago. Meses anteriores: ${formatCurrency(previousBalance)}`}
       />
       <StatCard
         label='Receitas'
@@ -115,6 +119,21 @@ function Summary({ totals, now }: { totals: DashboardTotal[]; now: Date }) {
         icon={<Icon icon={CircleArrowDown} tone='band-foreground' />}
         value={formatCurrency(expense)}
         tone='expense'
+      />
+      <PendingCard
+        toPay={summary.toPay}
+        toReceive={summary.toReceive}
+        hasPending={summary.hasPending}
+      />
+      <StatCard
+        label='Saldo previsto'
+        icon={<Icon icon={Wallet} tone='band-foreground' />}
+        value={formatCurrency(summary.forecast)}
+        note={
+          summary.hasPending
+            ? 'Saldo atual + a receber − a pagar'
+            : 'Igual ao saldo atual: nada pendente'
+        }
       />
     </>
   );

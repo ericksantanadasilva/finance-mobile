@@ -235,6 +235,8 @@ export type DashboardTotal = {
   /** ISO; dia 1 do mês de competência, ao meio-dia do fuso do servidor. */
   referenceDate: string;
   type: 'income' | 'expense';
+  /** Pago/recebido. Opcional: backend sem a 4i não manda (conta como pago). */
+  isPaid?: boolean;
   amount: number;
   category: { name: string; color: string } | null;
 };
