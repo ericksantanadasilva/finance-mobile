@@ -285,3 +285,90 @@ Regras:
 Para cada rota, o app testa: criar/alterar, conferir na tela web local que o
 mesmo dado aparece, e os erros (`400` com campo, `404` com id de outro usuário,
 sem rede).
+
+## Depois da escrita: saldo pelo pago (`GET /api/v1/dashboard`)
+
+Item **4b** do `PLANO_API_MOBILE.md`; no app, item **5g** do `PLANO_MOBILE.md`.
+Hoje marcar como pago não muda nenhum número: os totais contam tudo. A regra
+nova faz o pago ter efeito.
+
+### Regra
+
+- Receitas e despesas do mês, o gráfico mensal e as categorias continuam por
+  competência e contam tudo, pago ou não. O limite das categorias também.
+- O saldo atual conta só o pago/recebido. Isso vale também para "meses
+  anteriores" da Visão Geral e para o saldo anterior de Transações
+  (`carryOver`), para as duas telas baterem.
+- Pendentes: tudo o que não foi pago com competência até o mês atual. Os de
+  meses anteriores aparecem com o selo "atrasada"; meses futuros ficam fora.
+- Saldo previsto = saldo atual + a receber − a pagar (dos pendentes acima).
+
+### O que o app precisa
+
+1. **`GET /api/v1/dashboard`**: cada total ganha `isPaid` (o `groupBy` de
+   `getDashboardTotals` passa a agrupar também por ele). Só acréscimo: um app
+   antigo ignora o campo e continua somando tudo.
+
+   ```jsonc
+   {
+     "totals": [
+       {
+         "referenceDate": "2026-11-01T12:00:00.000Z",
+         "type": "expense",
+         "isPaid": false,
+         "amount": 10,
+         "category": { "name": "Lazer", "color": "#71717a" },
+       },
+     ],
+   }
+   ```
+
+   O app calcula saldo atual, a pagar, a receber, atrasadas e previsto a
+   partir disso, como já faz com os totais de hoje. O web faz a mesma conta em
+   `DashboardClient.tsx`.
+
+2. **`GET /api/v1/transactions`**: `totals.carryOver` soma só as transações
+   pagas (`isPaid: true` no `where` da soma dos meses anteriores). Muda também o
+   saldo anterior da tela de Transações do web, que usa o mesmo serviço.
+
+3. **Selo "atrasada" na lista**: não precisa de nada novo. O `TransactionItem`
+   já tem `isPaid` e `referenceDate`; o app (e o web) mostram o selo quando a
+   transação está pendente e a competência é anterior ao mês atual (fuso de São
+   Paulo).
+
+### Antes de virar a regra: pendentes antigas
+
+Lançamentos comuns nascem pagos (`isPaid` tem `DEFAULT true` desde o
+`0_init`, e `createTransaction` não o grava). Só as recorrências nascem
+pendentes: `generateForUser` cria a ocorrência do mês corrente com
+`isPaid: false`, e nada a marca depois. Até agora isso não aparecia; com a regra
+nova, toda ocorrência antiga não marcada sai do saldo de uma vez.
+
+No banco de dev só há uma pendente (recorrência de nov/2026). A produção precisa
+ser medida antes. Se houver pendentes com competência anterior ao mês da
+virada, um script de dados (não uma migration de schema) as marca como pagas,
+só as criadas antes da virada: elas sempre contaram no saldo, então o saldo de
+ninguém muda no dia. As do mês corrente continuam pendentes. É um `UPDATE` em
+dados reais: só com autorização, depois de backup, informando quantas linhas
+mudou.
+
+### Ordem
+
+1. API: `isPaid` nos totais do dashboard (nenhum número muda ainda).
+2. App: os cálculos e cards novos, tratando `isPaid` ausente como pago (funciona
+   antes e depois do item 1).
+3. Produção: o script de dados, se a medição pedir, antes do item 4.
+4. API e web: `carryOver` só com o pago; Visão Geral do web com saldo pelo pago,
+   pendentes e previsto. É aqui que o saldo muda para as pessoas: junto com o
+   app publicado.
+
+### Depois (passo separado): lançar já pendente
+
+Hoje só recorrências ficam pendentes, então o card de pendentes mostraria só
+elas. Num passo seguinte:
+
+- `isPaid` opcional no body do lançamento (`POST /transactions`) e da edição
+  completa (`PATCH /transactions/:id`), no `transactionBodySchema`, com padrão
+  `true`.
+- O web ganha "desmarcar" (o `TransactionStatus` hoje só marca) e o campo
+  "pago?" no lançamento; o app, o mesmo campo no formulário.

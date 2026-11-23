@@ -110,6 +110,14 @@ O que o app precisa de cada rota está em [ESCRITA_BACKEND.md](ESCRITA_BACKEND.m
 - [ ] **5d** Definir e remover o limite mensal de uma categoria
 - [ ] **5e** Recorrência: criar, pausar/retomar e excluir (o histórico fica)
 - [ ] **5f** Metas: criar e adicionar valor
+- [ ] **5g** Saldo pelo pago (depois da 5f; depende da 4b da API): saldo atual
+      só com o pago/recebido (também "meses anteriores" e o saldo anterior de
+      Transações); card de pendentes do mês (a pagar e a receber, incluindo as
+      atrasadas com selo "atrasada"; meses futuros fora) e saldo previsto
+      (atual + a receber − a pagar). Receitas, despesas e limites continuam
+      por competência, contando tudo. Depois, em passo separado: "pago?" no
+      lançamento e na edição. Detalhes em
+      [ESCRITA_BACKEND.md](ESCRITA_BACKEND.md#depois-da-escrita-saldo-pelo-pago-get-apiv1dashboard)
 
 Todo formulário: validação com mensagem no campo, botão desativado e com
 "salvando..." durante o envio, sucesso visível, erro da API em `ErrorBox`,
