@@ -27,6 +27,9 @@ Este repositório é **público**: nenhum segredo entra no Git.
 | 8   | Login                | Google Sign-In nativo (`@react-native-google-signin/google-signin`, API "Original"), `webClientId` = `GOOGLE_CLIENT_ID` do backend |
 | 9   | Tokens               | Access token (1h) + refresh token no `expo-secure-store`                                                                           |
 | 10  | Formatação           | Prettier com aspas simples, igual ao `financeiro`                                                                                  |
+| 11  | Push: plataforma     | Só Android por enquanto (push no iOS exige o Apple Developer Program)                                                              |
+| 12  | Push: Firebase       | `google-services.json` fora do Git: variável de arquivo `GOOGLE_SERVICES_JSON` no EAS, lida por um `app.config.ts`                 |
+| 13  | Push: permissão      | Pedida só por ação da pessoa: card "ativar avisos" na Visão Geral e item na aba "mais". Nunca na abertura do app                   |
 
 ## Ambiente de desenvolvimento
 
@@ -146,18 +149,73 @@ teclado sem cobrir o campo; ações destrutivas sempre com confirmação.
 
 ### Etapa 6: notificações push (n8n)
 
-Depende do backend: `PushDevice`, `NotificationLog`, rotas `/devices`,
-`lib/push.ts`, rota `dispatch` e o workflow diário no n8n (Etapa 5 do
-`PLANO_API_MOBILE.md`).
+Depende da Etapa 5 do `PLANO_API_MOBILE.md` (seção "Push"): `PushDevice`,
+`POST /api/v1/devices`, `DELETE /api/v1/devices/:id`, `lib/push.ts` e a rota
+`dispatch` (5a a 5e prontas no dev). O workflow diário no n8n (5f) só é
+preciso para os avisos chegarem sozinhos, às 9h; para testar, basta chamar o
+`dispatch`. Decisões 11 a 13.
 
-- [ ] **6a** `expo-notifications` (build nova), credenciais FCM no EAS, pedido de
-      permissão no momento certo (não na abertura do app)
-- [ ] **6b** Registrar o token (`POST /devices`) após o login e removê-lo
-      (`DELETE /devices/:id`) ao sair
-- [ ] **6c** Tocar na notificação abre a tela certa (recorrência a vencer →
-      Transações; orçamento → Categorias)
-- [ ] **6d** Preferências de aviso (quais tipos e com quantos dias de
-      antecedência), se o backend expuser em `PATCH /me`
+Avisos que a API manda (às 9h, agrupados, no máximo 3 por dia): vence hoje
+(despesas pendentes com data de hoje), atrasadas (resumo semanal, às
+segundas) e orçamento (80% e 100% do limite, uma vez por limiar no mês).
+Cada um leva `data.url`: `/transactions?status=pending` ou `/more/categories`.
+
+Antes da 6a: Firebase, credencial FCM V1 no expo.dev e a variável
+`GOOGLE_SERVICES_JSON` no EAS (passos no navegador). `EXPO_ACCESS_TOKEN` e
+Enhanced Security são do backend, mas na ordem certa: o token no `.env` da API
+**antes** de ligar o Enhanced Security, senão o envio passa a dar
+`UNAUTHORIZED`.
+
+- [ ] **6a** Pacote e build:
+  - `npx expo install expo-notifications` (versão do SDK 58; `expo-constants`
+    e `expo-device` já estão instalados)
+  - `app.config.ts` por cima do `app.json` (que continua sendo a base), só
+    para `android.googleServicesFile = process.env.GOOGLE_SERVICES_JSON ??
+    './google-services.json'`. O arquivo local serve para o `npx expo
+    run:android`, que não recebe as variáveis do EAS
+  - `google-services.json` e a chave da conta de serviço do Firebase
+    (`*-firebase-adminsdk-*.json`) no `.gitignore`
+  - Plugin `expo-notifications` no `app.json`: ícone branco com fundo
+    transparente (96×96; o ícone monocromático atual tem 432×432 e pode
+    servir de base), cor de destaque do tema e canal padrão `avisos`
+  - `"environment": "development"` no perfil `development` do `eas.json` (as
+    variáveis de `preview`/`production` ficam para a 7b)
+  - Development build nova no EAS e instalada no aparelho. O Expo Go não
+    recebe push no Android desde o SDK 53
+- [ ] **6b** Registro do aparelho e logout:
+  - `lib/push.ts` (app): ao abrir com sessão e permissão já concedida, cria o
+    canal `avisos`, pega o token (`getExpoPushTokenAsync` com o `projectId`
+    do EAS), chama `POST /devices` e guarda o `device.id` no
+    `expo-secure-store`. Silencioso: se falhar, registra no log e tenta de
+    novo na próxima abertura. Nunca pede permissão sozinho
+  - Ativar: cria o canal **antes** de pedir (no Android 13+ o pedido não
+    aparece sem canal), pede a permissão e registra
+  - Card "ativar avisos" na Visão Geral: só com permissão ainda não
+    decidida; "agora não" esconde o card (guardado no aparelho). Item na aba
+    "mais" com a situação (ativados / desativados) e a ação. Negado sem poder
+    pedir de novo: o item explica e abre as configurações do Android
+    (`Linking.openSettings()`)
+  - Logout: `DELETE /devices/:id` **antes** de apagar os tokens e de
+    `/auth/logout` (o `logout()` hoje apaga os tokens primeiro). Sem rede ou
+    com erro, segue o logout: o backend desativa os aparelhos da sessão
+    revogada. Apaga o `device.id` guardado
+  - App aberto: `setNotificationHandler` mostra o aviso (`shouldShowBanner`
+    e `shouldShowList`)
+- [ ] **6c** Toque na notificação abre a tela certa:
+  - No `_layout.tsx` raiz, com sessão: `getLastNotificationResponseAsync`
+    (app fechado) e `addNotificationResponseReceivedListener` (app aberto ou
+    em segundo plano). Usar as versões `Async`: as síncronas estão
+    obsoletas no SDK 58
+  - `data.url` vem de fora: só abre os caminhos conhecidos
+    (`/transactions`, com o `status` que a tela já aceita, e
+    `/more/categories`). Qualquer outro é ignorado
+  - Depois de abrir, `clearLastNotificationResponseAsync`, para não reabrir
+    ao voltar ao app. Sem sessão, não navega (o login vem primeiro)
+  - Teste: `dispatch?dryRun=1` para ver o que sairia; depois o `dispatch`
+    real no dev com uma despesa pendente vencendo hoje
+- [ ] **6d** Preferências de aviso (`notifications.due`, `.overdue` e
+      `.budget` no `User.settings`, todas ligadas por padrão), quando a API
+      tiver o `PATCH /me` (no "Depois" da 4h do `PLANO_API_MOBILE.md`)
 
 ### Etapa 7: publicação
 
