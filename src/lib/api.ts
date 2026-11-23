@@ -446,6 +446,22 @@ export async function createRecurringRule(input: RecurringRuleInput) {
   return data.rule;
 }
 
+/** Pausa (false) ou retoma (true). Retomar segue do mês atual, sem os meses pausados. */
+export async function setRecurringActive(id: string, active: boolean) {
+  const data = await apiFetch<{ rule: RecurringRule }>(
+    `/api/v1/recurring/${encodeURIComponent(id)}`,
+    { method: 'PATCH', body: { active } },
+  );
+  return data.rule;
+}
+
+/** Exclui a regra (204). As transações já lançadas ficam no histórico. */
+export function deleteRecurringRule(id: string) {
+  return apiFetch<void>(`/api/v1/recurring/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
 // ---------------------------------------------------------------------------
 // Metas
 

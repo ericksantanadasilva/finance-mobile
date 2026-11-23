@@ -16,7 +16,7 @@ import { Input } from '@/components/input';
 import { MoneyInput } from '@/components/money-input';
 import { Text } from '@/components/text';
 import { useToast } from '@/components/toast';
-import { TypeIcon } from '@/components/type-icon';
+import { TypeAmountDetail } from '@/components/type-amount-detail';
 import { TypeSelect, type TransactionType } from '@/components/type-select';
 import {
   createTransaction,
@@ -324,7 +324,13 @@ export function TransactionForm({
           <ConfirmDialog
             open={confirmingDelete}
             title='Excluir transação'
-            detail={<DeleteDetail transaction={transaction} />}
+            detail={
+              <TypeAmountDetail
+                type={transaction.type}
+                description={transaction.description}
+                amount={transaction.amount}
+              />
+            }
             description={
               transaction.recurringRuleId
                 ? 'Só esta ocorrência será removida; a recorrência continua. Essa ação não poderá ser desfeita.'
@@ -337,31 +343,6 @@ export function TransactionForm({
           />
         </>
       )}
-    </View>
-  );
-}
-
-/**
- * A transação a excluir, como na linha da lista: seta do tipo (o sentido não
- * fica só no sinal ou na cor), descrição e, embaixo, o valor.
- */
-function DeleteDetail({ transaction }: { transaction: TransactionItem }) {
-  return (
-    <View className='flex-row items-center gap-3 rounded-xl border border-border-custom p-3'>
-      <TypeIcon type={transaction.type} />
-      <View className='flex-1 gap-0.5'>
-        {/* Dado do usuário: como foi cadastrado */}
-        <Text numberOfLines={2} className='text-sm font-bold'>
-          {transaction.description}
-        </Text>
-        <Text
-          variant='value'
-          tone={transaction.type === 'income' ? 'income' : 'expense'}
-          className='text-sm font-bold'
-        >
-          {formatCurrency(transaction.amount)}
-        </Text>
-      </View>
     </View>
   );
 }

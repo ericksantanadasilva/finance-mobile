@@ -1,14 +1,31 @@
-import { CircleCheck, Pause } from 'lucide-react-native';
+import { useMutation } from '@tanstack/react-query';
+import { CircleCheck, Pause, Play, Trash2 } from 'lucide-react-native';
+import { useState } from 'react';
 import { View } from 'react-native';
 
+import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { CategoryBadge } from '@/components/category-badge';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Icon } from '@/components/icon';
 import { SkeletonText } from '@/components/skeleton';
 import { Text } from '@/components/text';
+import { useToast } from '@/components/toast';
+import { TypeAmountDetail } from '@/components/type-amount-detail';
 import { TypeIcon } from '@/components/type-icon';
-import type { RecurringRule } from '@/lib/api';
+import {
+  ApiError,
+  deleteRecurringRule,
+  setRecurringActive,
+  type RecurringRule,
+} from '@/lib/api';
 import { formatCurrency } from '@/lib/format';
+import { writeErrorMessage } from '@/lib/forms';
+import {
+  invalidateAfterWrite,
+  queryClient,
+  replaceListItem,
+} from '@/lib/query-client';
 
 /** "2026-11" → "11/2026" (como o web). */
 function monthLabel(month: string) {
@@ -17,8 +34,8 @@ function monthLabel(month: string) {
 
 /**
  * Regra recorrente (card do web). Ativa = adesivo; pausada = plana, com borda
- * fina (sem baixar a opacidade, que derrubaria o contraste do texto). Só
- * leitura: pausar, retomar e excluir entram com as rotas de escrita.
+ * fina (sem baixar a opacidade, que derrubaria o contraste do texto). No
+ * rodapé, pausar/retomar e excluir (com confirmação).
  */
 export function RecurringRuleCard({ rule }: { rule: RecurringRule }) {
   return (
@@ -67,7 +84,119 @@ export function RecurringRuleCard({ rule }: { rule: RecurringRule }) {
           </Text>
         )}
       </View>
+
+      <RuleActions rule={rule} />
     </Card>
+  );
+}
+
+/** Sem rede ou regra apagada: a mensagem dos formulários; o resto, a do web. */
+function actionErrorMessage(error: Error, fallback: string) {
+  if (error instanceof ApiError && (error.status === 0 || error.status === 404))
+    return writeErrorMessage(error);
+  return fallback;
+}
+
+/**
+ * Pausar/retomar (sem confirmação: desfaz-se no mesmo botão) e excluir (com
+ * confirmação). Os avisos ficam no useMutation: aparecem mesmo se o card sair
+ * da tela antes da resposta.
+ */
+function RuleActions({ rule }: { rule: RecurringRule }) {
+  const toast = useToast();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  const toggle = useMutation({
+    mutationFn: (active: boolean) => setRecurringActive(rule.id, active),
+    onSuccess: async (updated) => {
+      // O card muda na hora; retomar lança o mês atual: o resto recarrega
+      replaceListItem(['recurring'], updated);
+      toast.show(
+        'success',
+        updated.active
+          ? 'Recorrência retomada. Os meses pausados não são lançados.'
+          : 'Recorrência pausada.',
+      );
+      await invalidateAfterWrite('recurring');
+    },
+    onError: (error) =>
+      toast.show(
+        'error',
+        actionErrorMessage(error, 'Não foi possível atualizar a recorrência.'),
+      ),
+  });
+
+  const removal = useMutation({
+    mutationFn: () => deleteRecurringRule(rule.id),
+    onSuccess: () => {
+      setConfirmingDelete(false);
+      // Sai da lista na hora (o card desmonta com o diálogo)
+      queryClient.setQueryData<RecurringRule[]>(['recurring'], (rules) =>
+        rules?.filter((r) => r.id !== rule.id),
+      );
+      void invalidateAfterWrite('recurring');
+      toast.show('success', 'Recorrência excluída. O histórico foi mantido.');
+    },
+  });
+
+  const busy = toggle.isPending || removal.isPending;
+  const toggleLabel = toggle.isPending
+    ? rule.active
+      ? 'pausando...'
+      : 'retomando...'
+    : rule.active
+      ? 'pausar'
+      : 'retomar';
+
+  return (
+    <>
+      {/* pb/pr: espaço para a sombra do excluir não ser cortada */}
+      <View className='flex-row gap-3 pb-1 pr-1'>
+        <Button
+          variant='outline'
+          size='sm'
+          className='flex-1'
+          disabled={busy}
+          accessibilityLabel={`${rule.active ? 'pausar' : 'retomar'} ${rule.description}`}
+          accessibilityState={{ disabled: busy, busy: toggle.isPending }}
+          onPress={() => toggle.mutate(!rule.active)}
+        >
+          <Icon icon={rule.active ? Pause : Play} tone='muted' size={14} />
+          {toggleLabel}
+        </Button>
+        <Button
+          variant='expense'
+          size='sm'
+          className='flex-1'
+          disabled={busy}
+          accessibilityLabel={`excluir ${rule.description}`}
+          onPress={() => {
+            removal.reset();
+            setConfirmingDelete(true);
+          }}
+        >
+          <Icon icon={Trash2} tone='expense' size={14} />
+          excluir
+        </Button>
+      </View>
+      <ConfirmDialog
+        open={confirmingDelete}
+        title='Excluir recorrência'
+        description='Novos lançamentos deixarão de ser gerados. As transações já criadas continuam no seu histórico.'
+        detail={
+          <TypeAmountDetail
+            type={rule.type}
+            description={rule.description}
+            amount={rule.amount}
+            note={`todo dia ${rule.dayOfMonth}`}
+          />
+        }
+        loading={removal.isPending}
+        error={removal.error ? writeErrorMessage(removal.error) : undefined}
+        onConfirm={() => removal.mutate()}
+        onClose={() => setConfirmingDelete(false)}
+      />
+    </>
   );
 }
 
@@ -139,6 +268,11 @@ export function RecurringRuleCardSkeleton() {
           chars={24}
           tone='soft'
         />
+      </View>
+      {/* Botões pausar/excluir: h-9 (sm), com o respiro da sombra */}
+      <View className='flex-row gap-3 pb-1 pr-1'>
+        <View className='h-9 flex-1 rounded-xl border-2 border-border-custom' />
+        <View className='h-9 flex-1 rounded-xl border-2 border-border-custom' />
       </View>
     </Card>
   );
