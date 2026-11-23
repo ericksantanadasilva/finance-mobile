@@ -1,10 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import {
   CircleArrowDown,
   CircleArrowUp,
   LayoutDashboard,
+  Plus,
   Wallet,
 } from 'lucide-react-native';
+
+import { Button } from '@/components/button';
 
 import {
   CategoryCard,
@@ -38,6 +42,17 @@ export default function Overview() {
       title='Visão Geral'
       subtitle='Análise baseada no mês de competência.'
       onRefresh={() => query.refetch()}
+      action={
+        <Button
+          size='sm'
+          accessibilityLabel='nova transação'
+          // Sem mês: a Visão Geral é do mês atual, o padrão do formulário
+          onPress={() => router.push('/transaction')}
+        >
+          <Icon icon={Plus} />
+          nova
+        </Button>
+      }
     >
       {query.isPending ? (
         <>
