@@ -116,9 +116,12 @@ O que o app precisa de cada rota está em [ESCRITA_BACKEND.md](ESCRITA_BACKEND.m
 - [x] **5f** Metas: criar e adicionar valor. Fora da 5f: editar e excluir meta
       (o web tem; a API ainda não). Estão no "Depois" da 4h do
       `PLANO_API_MOBILE.md` (`PATCH /goals/:id` e `DELETE /goals/:id`)
-- [ ] **5g** Saldo pelo pago (depois da 5f; depende da 4b da API): saldo atual
+- [ ] **5g** Saldo pelo pago (depois da 5f; depende da 4i da API): saldo atual
       só com o pago/recebido (também "meses anteriores" e o saldo anterior de
-      Transações); card de pendentes do mês (a pagar e a receber, incluindo as
+      Transações). Decisão: "saldo" é sempre só o pago, em qualquer tela; em
+      Transações, o card de saldo usa `totals.balance` da API (saldo anterior +
+      recebido − pago do conjunto filtrado), e receitas e despesas seguem por
+      competência, contando tudo. Card de pendentes do mês (a pagar e a receber, incluindo as
       atrasadas com selo "atrasada"; meses futuros fora) e saldo previsto
       (atual + a receber − a pagar). Receitas, despesas e limites continuam
       por competência, contando tudo. Depois, em passo separado: "pago?" no

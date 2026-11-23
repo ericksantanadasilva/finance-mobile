@@ -288,7 +288,7 @@ sem rede).
 
 ## Depois da escrita: saldo pelo pago (`GET /api/v1/dashboard`)
 
-Item **4b** do `PLANO_API_MOBILE.md`; no app, item **5g** do `PLANO_MOBILE.md`.
+Item **4i** do `PLANO_API_MOBILE.md`; no app, item **5g** do `PLANO_MOBILE.md`.
 Hoje marcar como pago não muda nenhum número: os totais contam tudo. A regra
 nova faz o pago ter efeito.
 
@@ -299,6 +299,9 @@ nova faz o pago ter efeito.
 - O saldo atual conta só o pago/recebido. Isso vale também para "meses
   anteriores" da Visão Geral e para o saldo anterior de Transações
   (`carryOver`), para as duas telas baterem.
+- Decisão: "saldo" é sempre só o pago, em qualquer tela (Visão Geral,
+  Transações, web e app). Receitas e despesas de Transações continuam por
+  competência, contando tudo.
 - Pendentes: tudo o que não foi pago com competência até o mês atual. Os de
   meses anteriores aparecem com o selo "atrasada"; meses futuros ficam fora.
 - Saldo previsto = saldo atual + a receber − a pagar (dos pendentes acima).
@@ -328,8 +331,21 @@ nova faz o pago ter efeito.
    `DashboardClient.tsx`.
 
 2. **`GET /api/v1/transactions`**: `totals.carryOver` soma só as transações
-   pagas (`isPaid: true` no `where` da soma dos meses anteriores). Muda também o
-   saldo anterior da tela de Transações do web, que usa o mesmo serviço.
+   pagas (`isPaid: true` no `where` da soma dos meses anteriores), e
+   `totals.balance` (novo) é o saldo do conjunto filtrado só pelo pago:
+   `carryOver` + recebido − pago. O card de saldo usa o `balance` (no web e no
+   app); um backend sem o campo mantém a conta antiga no app.
+
+   ```jsonc
+   {
+     "totals": {
+       "income": 5000, // por competência, conta tudo
+       "expense": 3200, // idem
+       "carryOver": 800, // meses anteriores, só o pago
+       "balance": 2500, // carryOver + recebido − pago (R$ 100 de despesa pendente)
+     },
+   }
+   ```
 
 3. **Selo "atrasada" na lista**: não precisa de nada novo. O `TransactionItem`
    já tem `isPaid` e `referenceDate`; o app (e o web) mostram o selo quando a
@@ -349,7 +365,7 @@ No banco de dev só há uma pendente (recorrência de nov/2026).
 **Medição em produção (22/11/2026): 0 pendentes** (279 transações, todas
 pagas). O script de dados não é necessário agora. Repetir a mesma consulta
 (`SELECT` agregado só de leitura, por competência anterior/atual/futura, origem
-e tipo) logo antes de publicar a 4b: até lá, novas ocorrências de recorrência
+e tipo) logo antes de publicar a 4i: até lá, novas ocorrências de recorrência
 podem nascer pendentes.
 
 ```sql
