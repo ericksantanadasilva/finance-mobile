@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { Target } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { Plus, Target } from 'lucide-react-native';
 
+import { Button } from '@/components/button';
 import { EmptyState } from '@/components/empty-state';
 import { ErrorBox } from '@/components/error-box';
 import { GoalCard, GoalCardSkeleton } from '@/components/goals/goal-card';
@@ -24,6 +26,16 @@ export default function Goals() {
       title='Metas Financeiras'
       subtitle='Visualize e acompanhe seus sonhos de perto.'
       onRefresh={() => query.refetch()}
+      action={
+        <Button
+          size='sm'
+          accessibilityLabel='nova meta'
+          onPress={() => router.push('/goal')}
+        >
+          <Icon icon={Plus} />
+          nova
+        </Button>
+      }
     >
       {query.isPending ? (
         Array.from({ length: SKELETON_CARDS }, (_, i) => (

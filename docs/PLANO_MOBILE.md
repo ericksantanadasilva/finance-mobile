@@ -112,7 +112,9 @@ O que o app precisa de cada rota está em [ESCRITA_BACKEND.md](ESCRITA_BACKEND.m
       Fora da 5e: editar regra (não existe na API nem no web). Antes, decidir o
       que acontece com as ocorrências já lançadas (só as próximas mudam?); até
       lá, excluir e criar de novo
-- [ ] **5f** Metas: criar e adicionar valor
+- [ ] **5f** Metas: criar e adicionar valor. Fora da 5f: editar e excluir meta
+      (o web tem; a API ainda não). Estão no "Depois" da 4h do
+      `PLANO_API_MOBILE.md` (`PATCH /goals/:id` e `DELETE /goals/:id`)
 - [ ] **5g** Saldo pelo pago (depois da 5f; depende da 4b da API): saldo atual
       só com o pago/recebido (também "meses anteriores" e o saldo anterior de
       Transações); card de pendentes do mês (a pagar e a receber, incluindo as

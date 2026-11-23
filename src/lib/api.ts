@@ -484,3 +484,21 @@ export async function getGoals() {
   const data = await apiFetch<{ goals: Goal[] }>('/api/v1/goals');
   return data.goals;
 }
+
+export type GoalInput = {
+  name: string;
+  targetAmount: number;
+  /** Já guardado (>= 0). */
+  currentAmount: number;
+  /** "YYYY-MM-DD" ou null (sem prazo). */
+  deadline: string | null;
+};
+
+/** Cria a meta; volta no formato de GET /goals, já com createdAt. */
+export async function createGoal(input: GoalInput) {
+  const data = await apiFetch<{ goal: Goal }>('/api/v1/goals', {
+    method: 'POST',
+    body: input,
+  });
+  return data.goal;
+}
