@@ -31,6 +31,7 @@ import { currentMonthISO, shortMonthLabel } from '@/lib/dashboard';
 import { todayISO } from '@/lib/dates';
 import { formatCurrency } from '@/lib/format';
 import {
+  categoryOptions,
   checkMoney,
   checkText,
   formatMoneyInput,
@@ -38,9 +39,6 @@ import {
   writeErrorMessage,
 } from '@/lib/forms';
 import { invalidateAfterWrite } from '@/lib/query-client';
-
-// Sempre oferecidas, como no web, mesmo antes de existirem no banco
-const DEFAULT_CATEGORIES = ['Alimentação', 'Lazer', 'Transporte', 'Saúde'];
 
 type Field = 'amount' | 'description' | 'category';
 type Errors = Partial<Record<Field, string>>;
@@ -101,14 +99,11 @@ export function TransactionForm({
     queryKey: ['categories', categoriesMonth],
     queryFn: () => getCategories(categoriesMonth),
   });
-  const categoryOptions = Array.from(
-    new Set([
-      ...DEFAULT_CATEGORIES,
-      ...(categories.data?.map((c) => c.name) ?? []),
-      // A da transação editada aparece como chip mesmo antes da lista chegar
-      ...(transaction?.category ? [transaction.category.name] : []),
-    ]),
-  ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  const categoryNames = categoryOptions(
+    categories.data?.map((c) => c.name) ?? [],
+    // A da transação editada aparece como chip mesmo antes da lista chegar
+    transaction?.category?.name,
+  );
 
   const mutation = useMutation({
     mutationFn: async (input: TransactionInput) => {
@@ -249,7 +244,7 @@ export function TransactionForm({
             />
           )}
           <CategorySelect
-            options={categoryOptions}
+            options={categoryNames}
             value={category}
             invalid={!!errors.category}
             onChange={(name) => {

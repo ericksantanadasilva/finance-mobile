@@ -15,6 +15,8 @@ export type CategorySelectProps = {
   value: string;
   onChange: (name: string) => void;
   invalid?: boolean;
+  /** Oferece "sem categoria" (valor ""), para quando ela é opcional. */
+  allowNone?: boolean;
 };
 
 /**
@@ -26,6 +28,7 @@ export function CategorySelect({
   value,
   onChange,
   invalid = false,
+  allowNone = false,
 }: CategorySelectProps) {
   // Um nome que não está na lista (ex.: edição de categoria apagada) abre como "nova"
   const [typing, setTyping] = useState(
@@ -33,6 +36,7 @@ export function CategorySelect({
   );
 
   const chips: ChipOption<string>[] = [
+    ...(allowNone ? [{ value: '', label: 'sem categoria' }] : []),
     ...options.map((name) => ({
       value: name,
       label: name,

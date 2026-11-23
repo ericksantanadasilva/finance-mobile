@@ -425,6 +425,27 @@ export async function getRecurringRules() {
   return data.rules;
 }
 
+export type RecurringRuleInput = {
+  description: string;
+  amount: number;
+  type: 'income' | 'expense';
+  /** Nome; vazio = sem categoria (criada se não existir). */
+  category: string;
+  /** 1 a 31; meses curtos usam o último dia. */
+  dayOfMonth: number;
+  /** "YYYY-MM". */
+  startMonth: string;
+};
+
+/** Cria a regra; o servidor já lança as ocorrências do início até o mês atual. */
+export async function createRecurringRule(input: RecurringRuleInput) {
+  const data = await apiFetch<{ rule: RecurringRule }>('/api/v1/recurring', {
+    method: 'POST',
+    body: input,
+  });
+  return data.rule;
+}
+
 // ---------------------------------------------------------------------------
 // Metas
 

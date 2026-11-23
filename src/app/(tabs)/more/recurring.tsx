@@ -1,6 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { CircleArrowDown, CircleArrowUp, Repeat } from 'lucide-react-native';
+import { router } from 'expo-router';
+import {
+  CircleArrowDown,
+  CircleArrowUp,
+  Plus,
+  Repeat,
+} from 'lucide-react-native';
 
+import { Button } from '@/components/button';
 import { EmptyState } from '@/components/empty-state';
 import { ErrorBox } from '@/components/error-box';
 import { Icon } from '@/components/icon';
@@ -33,6 +40,16 @@ export default function Recurring() {
       subtitle='Contas fixas e receitas mensais lançadas automaticamente.'
       back
       onRefresh={() => query.refetch()}
+      action={
+        <Button
+          size='sm'
+          accessibilityLabel='nova recorrência'
+          onPress={() => router.push('/recurring-rule')}
+        >
+          <Icon icon={Plus} />
+          nova
+        </Button>
+      }
     >
       {query.isPending ? (
         <>

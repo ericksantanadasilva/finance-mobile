@@ -82,6 +82,25 @@ export function referenceMonthOptions(include?: string) {
   return months.sort();
 }
 
+// Sempre oferecidas, como no web, mesmo antes de existirem no banco
+const DEFAULT_CATEGORIES = ['Alimentação', 'Lazer', 'Transporte', 'Saúde'];
+
+/**
+ * Chips de categoria: as padrão, as do usuário e `include` (ex.: a da
+ * transação editada, antes da lista chegar), sem repetir e em ordem alfabética.
+ */
+export function categoryOptions(names: string[], include?: string) {
+  return Array.from(
+    new Set([...DEFAULT_CATEGORIES, ...names, ...(include ? [include] : [])]),
+  ).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+}
+
+/** Meses de início de uma recorrência: 12 atrás até 6 à frente, como no web. */
+export function startMonthOptions() {
+  const current = currentMonthISO();
+  return Array.from({ length: 19 }, (_, i) => addMonths(current, i - 12));
+}
+
 /** Mensagem para o usuário quando uma gravação falha. */
 export function writeErrorMessage(error: Error) {
   if (!(error instanceof ApiError)) return 'Não foi possível salvar.';

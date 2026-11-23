@@ -108,7 +108,10 @@ O que o app precisa de cada rota está em [ESCRITA_BACKEND.md](ESCRITA_BACKEND.m
       ou nova); mostrar o alerta de orçamento que volta na resposta
 - [ ] **5c** Marcar como pago/recebido (com desfazer) e excluir transação
 - [ ] **5d** Definir e remover o limite mensal de uma categoria
-- [ ] **5e** Recorrência: criar, pausar/retomar e excluir (o histórico fica)
+- [ ] **5e** Recorrência: criar, pausar/retomar e excluir (o histórico fica).
+      Fora da 5e: editar regra (não existe na API nem no web). Antes, decidir o
+      que acontece com as ocorrências já lançadas (só as próximas mudam?); até
+      lá, excluir e criar de novo
 - [ ] **5f** Metas: criar e adicionar valor
 - [ ] **5g** Saldo pelo pago (depois da 5f; depende da 4b da API): saldo atual
       só com o pago/recebido (também "meses anteriores" e o saldo anterior de

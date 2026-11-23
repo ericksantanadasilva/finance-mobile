@@ -61,6 +61,10 @@ function RootNavigator() {
           name='category-budget'
           options={{ presentation: 'modal' }}
         />
+        <Stack.Screen
+          name='recurring-rule'
+          options={{ presentation: 'modal' }}
+        />
       </Stack.Protected>
       <Stack.Protected guard={!signedIn}>
         <Stack.Screen name='login' />
