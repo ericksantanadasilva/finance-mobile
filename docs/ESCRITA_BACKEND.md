@@ -344,8 +344,53 @@ pendentes: `generateForUser` cria a ocorrência do mês corrente com
 `isPaid: false`, e nada a marca depois. Até agora isso não aparecia; com a regra
 nova, toda ocorrência antiga não marcada sai do saldo de uma vez.
 
-No banco de dev só há uma pendente (recorrência de nov/2026). A produção precisa
-ser medida antes. Se houver pendentes com competência anterior ao mês da
+No banco de dev só há uma pendente (recorrência de nov/2026).
+
+**Medição em produção (22/11/2026): 0 pendentes** (279 transações, todas
+pagas). O script de dados não é necessário agora. Repetir a mesma consulta
+(`SELECT` agregado só de leitura, por competência anterior/atual/futura, origem
+e tipo) logo antes de publicar a 4b: até lá, novas ocorrências de recorrência
+podem nascer pendentes.
+
+```sql
+-- Só leitura: pendentes por competência (anterior / atual / futura), origem e tipo.
+-- Mês atual no fuso de São Paulo, como o app e a API.
+BEGIN TRANSACTION READ ONLY;
+
+WITH ref AS (
+  SELECT date_trunc('month', now() AT TIME ZONE 'America/Sao_Paulo') AS mes_atual
+)
+SELECT
+  CASE
+    WHEN date_trunc('month', t."referenceDate") < ref.mes_atual THEN '1. anterior'
+    WHEN date_trunc('month', t."referenceDate") = ref.mes_atual THEN '2. atual'
+    ELSE '3. futura'
+  END AS competencia,
+  CASE
+    WHEN t."recurringRuleId" IS NOT NULL OR t."isRecurring" THEN 'recorrencia'
+    ELSE 'comum'
+  END AS origem,
+  t.type::text AS tipo,
+  count(*) AS pendentes,
+  count(DISTINCT t."userId") AS usuarios,
+  to_char(min(t."referenceDate"), 'YYYY-MM') AS competencia_mais_antiga,
+  to_char(max(t."referenceDate"), 'YYYY-MM') AS competencia_mais_recente
+FROM "Transaction" t
+CROSS JOIN ref
+WHERE t."isPaid" = false
+GROUP BY ROLLUP (1, 2, 3)
+ORDER BY 1 NULLS LAST, 2 NULLS LAST, 3 NULLS LAST;
+
+-- Contexto: total de transações e de usuários com transações
+SELECT count(*) AS transacoes, count(DISTINCT "userId") AS usuarios
+FROM "Transaction";
+
+ROLLBACK;
+```
+
+"Anterior" maior que zero pede o script abaixo; "futura" deve vir zerado.
+
+Se a nova medição achar pendentes com competência anterior ao mês da
 virada, um script de dados (não uma migration de schema) as marca como pagas,
 só as criadas antes da virada: elas sempre contaram no saldo, então o saldo de
 ninguém muda no dia. As do mês corrente continuam pendentes. É um `UPDATE` em
