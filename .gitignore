@@ -44,3 +44,6 @@ yarn-error.*
 /android
 
 google-services.json
+
+# Chave da conta de serviço do Firebase (credencial; vai só para o expo.dev)
+*-firebase-adminsdk-*.json

@@ -167,24 +167,28 @@ Enhanced Security são do backend, mas na ordem certa: o token no `.env` da API
 `UNAUTHORIZED`.
 
 - [ ] **6a** Pacote e build:
-  - `npx expo install expo-notifications` (versão do SDK 58; `expo-constants`
-    e `expo-device` já estão instalados)
+  - `expo-notifications` 58.1.8, fixa. O SDK 58 pede `~58.1.9`, mas ela saiu
+    em 11/11/2026 (menos de 2 semanas); o `expo-doctor` avisa até a troca.
+    Trocar pela 58.1.9 a partir de 25/11/2026, antes da 7d. `expo-constants`
+    e `expo-device` já estavam instalados
   - `app.config.ts` por cima do `app.json` (que continua sendo a base), só
     para `android.googleServicesFile = process.env.GOOGLE_SERVICES_JSON ??
     './google-services.json'`. O arquivo local serve para o `npx expo
     run:android`, que não recebe as variáveis do EAS
   - `google-services.json` e a chave da conta de serviço do Firebase
     (`*-firebase-adminsdk-*.json`) no `.gitignore`
-  - Plugin `expo-notifications` no `app.json`: ícone branco com fundo
-    transparente (96×96; o ícone monocromático atual tem 432×432 e pode
-    servir de base), cor de destaque do tema e canal padrão `avisos`
+  - Plugin `expo-notifications` no `app.json`: ícone
+    `assets/images/notification-icon.png` (provisório: cópia do ícone
+    monocromático do template; o Android só usa a transparência), cor
+    `#111111` (ink, o primary do web; no Android 12+ é o círculo atrás do
+    ícone branco) e canal padrão `default`, o `channelId` que a API manda
   - `"environment": "development"` no perfil `development` do `eas.json` (as
     variáveis de `preview`/`production` ficam para a 7b)
   - Development build nova no EAS e instalada no aparelho. O Expo Go não
     recebe push no Android desde o SDK 53
 - [ ] **6b** Registro do aparelho e logout:
   - `lib/push.ts` (app): ao abrir com sessão e permissão já concedida, cria o
-    canal `avisos`, pega o token (`getExpoPushTokenAsync` com o `projectId`
+    canal `default` (nome visível "Avisos"), pega o token (`getExpoPushTokenAsync` com o `projectId`
     do EAS), chama `POST /devices` e guarda o `device.id` no
     `expo-secure-store`. Silencioso: se falhar, registra no log e tenta de
     novo na próxima abertura. Nunca pede permissão sozinho
@@ -232,7 +236,8 @@ Enhanced Security são do backend, mas na ordem certa: o token no `.env` da API
 ### Etapa 8: acabamento
 
 - [ ] **8a** Ícone e splash com a logo FN (fundo do splash no tema, não o azul
-      do template; build nova)
+      do template; build nova), inclusive o ícone da notificação
+      (`notification-icon.png`, branco com fundo transparente)
 - [ ] **8b** (opcional) Rosca de categorias na Visão Geral com `react-native-svg`
 - [ ] **8c** Formas decorativas no login (magenta e roxo, como no web)
 - [ ] **8d** README com prints das telas nos dois modos
