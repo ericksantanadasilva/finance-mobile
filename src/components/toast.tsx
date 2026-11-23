@@ -11,11 +11,14 @@ import { AccessibilityInfo, Platform, Pressable, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { Button } from '@/components/button';
 import { Icon } from '@/components/icon';
 import { Text, type TextTone } from '@/components/text';
 import { useHardShadow } from '@/lib/hard-shadow';
 
 const DURATION_MS = 4_000;
+// Com botão (ex.: "desfazer"), mais tempo para alcançá-lo
+const ACTION_DURATION_MS = 6_000;
 // Mais que isso cobre a tela; os mais antigos saem primeiro
 const MAX_VISIBLE = 3;
 
@@ -46,10 +49,18 @@ const TONES: Record<
   },
 };
 
-type ToastItem = { id: number; tone: ToastTone; message: string };
+/** Botão do aviso (ex.: "desfazer"); tocar nele também fecha o aviso. */
+export type ToastAction = { label: string; onPress: () => void };
+
+type ToastItem = {
+  id: number;
+  tone: ToastTone;
+  message: string;
+  action?: ToastAction;
+};
 
 type ToastContextValue = {
-  show: (tone: ToastTone, message: string) => void;
+  show: (tone: ToastTone, message: string, action?: ToastAction) => void;
 };
 
 const ToastContext = createContext<ToastContextValue | null>(null);
@@ -69,12 +80,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setItems((current) => current.filter((item) => item.id !== id));
   }
 
-  function show(tone: ToastTone, message: string) {
+  function show(tone: ToastTone, message: string, action?: ToastAction) {
     const id = nextId.current++;
     setItems((current) =>
-      [...current, { id, tone, message }].slice(-MAX_VISIBLE),
+      [...current, { id, tone, message, action }].slice(-MAX_VISIBLE),
     );
-    setTimeout(() => dismiss(id), DURATION_MS);
+    setTimeout(() => dismiss(id), action ? ACTION_DURATION_MS : DURATION_MS);
     // No Android a região "polite" do aviso já anuncia; o iOS não tem
     if (Platform.OS === 'ios')
       AccessibilityInfo.announceForAccessibility(message);
@@ -116,12 +127,16 @@ function Toast({
 }) {
   const style = TONES[item.tone];
   const shadow = useHardShadow('md', style.token);
+  const { action } = item;
 
   return (
     <Pressable
       accessibilityRole='alert'
       accessibilityLiveRegion='polite'
       accessibilityHint='toque para fechar'
+      // Com botão, o aviso não vira um elemento só: o leitor de tela precisa
+      // alcançar o botão separado do texto
+      accessible={!action}
       onPress={onDismiss}
       className={`flex-row items-start gap-3 rounded-xl border-2 bg-surface p-4 ${style.border}`}
       style={shadow}
@@ -131,6 +146,20 @@ function Toast({
         <Icon icon={style.icon} tone={style.tone} />
       </View>
       <Text className='flex-1 text-sm font-medium'>{item.message}</Text>
+      {action && (
+        <Button
+          variant='outline'
+          size='sm'
+          // Centrado na linha do texto (h-9 = 36px; a linha tem 20px)
+          className='-my-2'
+          onPress={() => {
+            onDismiss();
+            action.onPress();
+          }}
+        >
+          {action.label}
+        </Button>
+      )}
     </Pressable>
   );
 }

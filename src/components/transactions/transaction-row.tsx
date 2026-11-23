@@ -1,12 +1,16 @@
+import { useMutation } from '@tanstack/react-query';
 import { Pressable, View } from 'react-native';
 
 import { CategoryBadge } from '@/components/category-badge';
 import { SkeletonText } from '@/components/skeleton';
 import { Text } from '@/components/text';
+import { useToast } from '@/components/toast';
 import { TransactionStatus } from '@/components/transaction-status';
 import { TypeIcon } from '@/components/type-icon';
-import type { TransactionItem } from '@/lib/api';
+import { ApiError, setTransactionPaid, type TransactionItem } from '@/lib/api';
 import { formatCurrency, formatDateOnly } from '@/lib/format';
+import { writeErrorMessage } from '@/lib/forms';
+import { invalidateAfterWrite } from '@/lib/query-client';
 
 /** Valor com sinal na despesa, como no web ("- R$ 50,00"). */
 function signedAmount(tx: TransactionItem) {
@@ -14,10 +18,43 @@ function signedAmount(tx: TransactionItem) {
   return tx.type === 'expense' ? `- ${value}` : value;
 }
 
+/** Sem rede ou item apagado: a mensagem do formulário serve; o resto, a do web. */
+function paidErrorMessage(error: Error) {
+  if (error instanceof ApiError && (error.status === 0 || error.status === 404))
+    return writeErrorMessage(error);
+  return 'Não foi possível atualizar o status.';
+}
+
+/**
+ * Marcar como pago/recebido e desfazer. Os avisos ficam no useMutation (e não
+ * no mutate) para aparecerem mesmo se a linha sair da tela antes da resposta.
+ */
+function useMarkPaid(tx: TransactionItem) {
+  const toast = useToast();
+  const mutation = useMutation({
+    mutationFn: (isPaid: boolean) => setTransactionPaid(tx.id, isPaid),
+    // Espera a lista recarregar: até lá o selo segue em "marcando..." e não
+    // aceita um segundo toque
+    onSuccess: async (_, isPaid) => {
+      await invalidateAfterWrite('transaction');
+      if (!isPaid) return;
+      toast.show(
+        'success',
+        tx.type === 'income' ? 'Marcado como recebido.' : 'Marcado como pago.',
+        { label: 'desfazer', onPress: () => mutation.mutate(false) },
+      );
+    },
+    onError: (error) => toast.show('error', paidErrorMessage(error)),
+  });
+
+  return { markPaid: () => mutation.mutate(true), marking: mutation.isPending };
+}
+
 /**
  * Linha compacta: descrição e valor na mesma linha; embaixo, menores, a data,
  * a categoria e os selos de status (quebram para a linha seguinte se não
  * couberem). Com `onPress`, a linha inteira é tocável (ex.: abrir a edição).
+ * Pendente, o selo marca como pago/recebido (e o leitor de tela tem a ação).
  */
 export function TransactionRow({
   tx,
@@ -26,12 +63,25 @@ export function TransactionRow({
   tx: TransactionItem;
   onPress?: () => void;
 }) {
+  const { markPaid, marking } = useMarkPaid(tx);
+  const markLabel =
+    tx.type === 'income' ? 'marcar como recebido' : 'marcar como pago';
+
   return (
     <Pressable
       disabled={!onPress}
       onPress={onPress}
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityHint={onPress ? 'abre a edição' : undefined}
+      // A linha é um elemento só para o leitor de tela: o selo vira uma ação dela
+      accessibilityActions={
+        tx.isPaid || marking
+          ? undefined
+          : [{ name: 'markPaid', label: markLabel }]
+      }
+      onAccessibilityAction={(event) => {
+        if (event.nativeEvent.actionName === 'markPaid') markPaid();
+      }}
       // Pressionado: fundo surface-muted, como o hover das linhas no web
       className='flex-row items-center gap-3 px-4 py-3 active:bg-surface-muted'
     >
@@ -67,6 +117,8 @@ export function TransactionRow({
             isPaid={tx.isPaid}
             isRecurring={!!tx.recurringRuleId}
             type={tx.type}
+            onMarkPaid={markPaid}
+            marking={marking}
           />
         </View>
       </View>

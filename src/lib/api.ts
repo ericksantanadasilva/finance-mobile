@@ -347,6 +347,14 @@ export function updateTransaction(id: string, input: TransactionInput) {
   );
 }
 
+/** Marca como paga/recebida ou volta para pendente (desfazer). */
+export function setTransactionPaid(id: string, isPaid: boolean) {
+  return apiFetch<{ transaction: TransactionItem }>(
+    `/api/v1/transactions/${encodeURIComponent(id)}`,
+    { method: 'PATCH', body: { isPaid } },
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Categorias
 
