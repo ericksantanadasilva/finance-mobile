@@ -2,11 +2,13 @@ import {
   Calendar,
   CalendarX,
   CircleCheck,
+  CirclePlus,
   Target,
   TriangleExclamationPoint,
 } from 'lucide-react-native';
 import { View } from 'react-native';
 
+import { Button } from '@/components/button';
 import { Card, CardContent, CardHeader } from '@/components/card';
 import { Icon } from '@/components/icon';
 import { ProgressBar } from '@/components/progress-bar';
@@ -32,9 +34,16 @@ function paceLabel(pace: GoalPace) {
 
 /**
  * Meta (card do web): acumulado em destaque, objetivo ao lado, barra e prazo.
- * Nas metas com prazo, a barra segue o ritmo (ver lib/goals).
+ * Nas metas com prazo, a barra segue o ritmo (ver lib/goals). Com
+ * `onAddValue`, o rodapé tem "adicionar valor" (aporte), como no web.
  */
-export function GoalCard({ goal }: { goal: Goal }) {
+export function GoalCard({
+  goal,
+  onAddValue,
+}: {
+  goal: Goal;
+  onAddValue?: () => void;
+}) {
   const progress = goalProgress(goal);
   const pace = goalPace(goal);
   // Concluída pelos valores, não pela porcentagem exibida
@@ -124,6 +133,17 @@ export function GoalCard({ goal }: { goal: Goal }) {
             <PaceNote tone='expense' icon={CalendarX} text='Prazo vencido' />
           )}
         </View>
+
+        {onAddValue && (
+          <Button
+            variant='outline'
+            accessibilityLabel={`adicionar valor a ${goal.name}`}
+            onPress={onAddValue}
+          >
+            <Icon icon={CirclePlus} tone='muted' />
+            adicionar valor
+          </Button>
+        )}
       </CardContent>
     </Card>
   );
@@ -210,6 +230,8 @@ export function GoalCardSkeleton() {
             />
           </View>
         </View>
+        {/* Botão "adicionar valor" (md: h-11, borda de 2px) */}
+        <View className='h-11 rounded-xl border-2 border-border-custom' />
       </CardContent>
     </Card>
   );

@@ -61,7 +61,16 @@ export default function Goals() {
             />
           )}
           {query.data.map((goal) => (
-            <GoalCard key={goal.id} goal={goal} />
+            <GoalCard
+              key={goal.id}
+              goal={goal}
+              onAddValue={() =>
+                router.push({
+                  pathname: '/goal-contribution',
+                  params: { id: goal.id },
+                })
+              }
+            />
           ))}
         </>
       )}

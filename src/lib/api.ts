@@ -502,3 +502,12 @@ export async function createGoal(input: GoalInput) {
   });
   return data.goal;
 }
+
+/** Aporte (> 0, incremento no servidor). Passar do objetivo é permitido. */
+export async function addToGoal(id: string, amount: number) {
+  const data = await apiFetch<{ goal: Goal }>(
+    `/api/v1/goals/${encodeURIComponent(id)}/contributions`,
+    { method: 'POST', body: { amount } },
+  );
+  return data.goal;
+}
