@@ -3,11 +3,14 @@ import { Pressable, View } from 'react-native';
 
 import { Icon } from '@/components/icon';
 import { Text } from '@/components/text';
+import { todayISO } from '@/lib/dates';
 
 export type TransactionStatusProps = {
   isPaid: boolean;
   isRecurring: boolean;
   type: 'income' | 'expense';
+  /** ISO; a competência é gravada no dia 1 (o mês é o do UTC, como no formulário). */
+  referenceDate: string;
   /** Sem respiro vertical, para caber na linha compacta de Transações. */
   compact?: boolean;
   /** Torna o selo pendente tocável ("a pagar · marcar"). */
@@ -21,22 +24,30 @@ const MARK_HIT_SLOP = { top: 12, bottom: 12, left: 8, right: 8 };
 
 /**
  * Selos de status (TransactionStatus do web): "recorrente" plano e suave;
- * pendente com contorno warning e relógio (nunca só a cor). Com `onMarkPaid`,
- * o pendente vira botão de marcar como pago/recebido, como no web.
+ * pendente com contorno warning e relógio (nunca só a cor), mais "atrasada"
+ * (estático) se a competência já passou. Com `onMarkPaid`, o pendente vira
+ * botão de marcar como pago/recebido, como no web.
  */
 export function TransactionStatus({
   isPaid,
   isRecurring,
   type,
+  referenceDate,
   compact = false,
   onMarkPaid,
   marking = false,
 }: TransactionStatusProps) {
   if (!isRecurring && isPaid) return null;
   const py = compact ? '' : 'py-0.5';
+  // Mesma regra do web e da Visão Geral: pendente com competência anterior ao
+  // mês atual em São Paulo
+  const isOverdue =
+    !isPaid && referenceDate.slice(0, 7) < todayISO().slice(0, 7);
 
   return (
-    <View className='flex-row flex-wrap items-center gap-1.5'>
+    // max-w-full: se os selos não couberem na linha da transação, quebram aqui
+    // dentro em vez de passar da largura
+    <View className='max-w-full flex-row flex-wrap items-center gap-1.5'>
       {isRecurring && (
         <View
           className={`flex-row items-center gap-1 rounded-md border border-border-custom bg-surface-muted px-1.5 ${py}`}
@@ -44,6 +55,17 @@ export function TransactionStatus({
           <Icon icon={Repeat} tone='muted' size={12} />
           <Text tone='muted' className='text-xs font-medium lowercase'>
             Recorrente
+          </Text>
+        </View>
+      )}
+      {/* Estático: só o "a pagar · marcar" é tocável */}
+      {isOverdue && (
+        <View
+          className={`flex-row items-center gap-1 rounded-md border-2 border-warning bg-surface px-1.5 ${py}`}
+        >
+          <Icon icon={Clock} tone='warning' size={12} />
+          <Text tone='warning' className='text-xs font-bold lowercase'>
+            Atrasada
           </Text>
         </View>
       )}

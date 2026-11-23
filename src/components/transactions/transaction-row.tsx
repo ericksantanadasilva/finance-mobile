@@ -111,6 +111,7 @@ export function TransactionRow({
             isPaid={tx.isPaid}
             isRecurring={!!tx.recurringRuleId}
             type={tx.type}
+            referenceDate={tx.referenceDate}
             onMarkPaid={markPaid}
             marking={marking}
           />

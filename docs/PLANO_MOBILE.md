@@ -127,6 +127,11 @@ O que o app precisa de cada rota está em [ESCRITA_BACKEND.md](ESCRITA_BACKEND.m
       por competência, contando tudo. Depois, em passo separado: "pago?" no
       lançamento e na edição (5h). Detalhes em
       [ESCRITA_BACKEND.md](ESCRITA_BACKEND.md#depois-da-escrita-saldo-pelo-pago-get-apiv1dashboard)
+      - Nota: a lista de Transações também mostra o selo "atrasada" (como no
+        web): estático, contorno warning e relógio, ao lado do "a pagar ·
+        marcar", que segue o único tocável. Mesma regra do card: não paga e
+        competência anterior ao mês atual em São Paulo. Em telas estreitas os
+        selos quebram de linha sem passar da largura
 - [x] **5h** Lançar já pendente (depende da 4j da API, que precisa estar
       publicada antes do app): campo "Situação" no formulário de transação
       (pago / a pagar, ou recebido / a receber), no padrão do seletor de tipo;
