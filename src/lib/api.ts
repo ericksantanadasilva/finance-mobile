@@ -283,7 +283,18 @@ export type TransactionsPage = {
   pageSize: number;
   totalPages: number;
   /** Do conjunto filtrado inteiro (não só da página). */
-  totals: { income: number; expense: number; carryOver: number };
+  totals: {
+    /** Por competência, conta tudo (pago ou não). */
+    income: number;
+    expense: number;
+    /** Sobra dos meses anteriores, só o pago. */
+    carryOver: number;
+    /**
+     * Saldo só pelo pago: carryOver + recebido − pago do conjunto. Opcional:
+     * backend sem a 4i não manda.
+     */
+    balance?: number;
+  };
   categories: string[];
   months: string[];
 };

@@ -174,10 +174,11 @@ export default function Transactions() {
 
       {query.isPending ? (
         <>
-          {/* Abre no mês atual, que costuma ter sobra: receitas com a nota */}
+          {/* Abre no mês atual, que costuma ter sobra: receitas com a nota;
+              o saldo tem sempre a nota "conta só o que foi pago" */}
           <StatCardSkeleton hasNote />
           <StatCardSkeleton />
-          <StatCardSkeleton />
+          <StatCardSkeleton hasNote />
         </>
       ) : query.isError && !firstPage ? (
         <ErrorBox
@@ -332,10 +333,10 @@ function ListSkeleton() {
 /**
  * Resumo do conjunto filtrado (como no web). A sobra dos meses anteriores só
  * vem vendo um mês inteiro sem outros filtros: positiva soma nas receitas,
- * negativa nas despesas.
+ * negativa nas despesas. O saldo conta só o que foi pago (`balance` da API).
  */
 function Summary({ page }: { page: TransactionsPage }) {
-  const { income, expense, carryOver } = page.totals;
+  const { income, expense, carryOver, balance } = page.totals;
   const incomeTotal = income + Math.max(carryOver, 0);
   const expenseTotal = expense + Math.max(-carryOver, 0);
 
@@ -366,7 +367,9 @@ function Summary({ page }: { page: TransactionsPage }) {
       <StatCard
         label='Saldo'
         icon={<Icon icon={Wallet} tone='band-foreground' />}
-        value={formatCurrency(incomeTotal - expenseTotal)}
+        // Backend sem a 4i não manda o balance: fica a conta antiga (conta tudo)
+        value={formatCurrency(balance ?? incomeTotal - expenseTotal)}
+        note={balance === undefined ? undefined : 'Conta só o que foi pago'}
       />
     </>
   );
