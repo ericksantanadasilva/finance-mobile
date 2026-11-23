@@ -149,6 +149,12 @@ Depende do backend: `PushDevice`, `NotificationLog`, rotas `/devices`,
 - [ ] **8b** (opcional) Rosca de categorias na Visão Geral com `react-native-svg`
 - [ ] **8c** Formas decorativas no login (magenta e roxo, como no web)
 - [ ] **8d** README com prints das telas nos dois modos
+- [ ] **8e** Calendário próprio em JS no lugar do `DatePickerDialog` nativo:
+      cabeçalho com a data num formato que caiba (ex.: "dom., 22 de nov."),
+      fonte Space Grotesk, dia escolhido adesivo, setas de mês, seletor de ano
+      (para prazos de meta) e rótulos para leitor de tela em cada dia e seta.
+      O nativo não resolve: o `@expo/ui` não expõe o `dateFormatter` do
+      Material 3, e a data por extenso em `headlineLarge` sai cortada
 
 ## Riscos e cuidados
 
