@@ -14,6 +14,7 @@ import { FormField } from '@/components/form-field';
 import { Icon } from '@/components/icon';
 import { Input } from '@/components/input';
 import { MoneyInput } from '@/components/money-input';
+import { PaidSelect } from '@/components/paid-select';
 import { Text } from '@/components/text';
 import { useToast } from '@/components/toast';
 import { TypeAmountDetail } from '@/components/type-amount-detail';
@@ -91,6 +92,7 @@ export function TransactionForm({
       : todayISO(),
   );
   const [month, setMonth] = useState(initialMonth);
+  const [isPaid, setIsPaid] = useState(transaction?.isPaid ?? true);
   const [errors, setErrors] = useState<Errors>({});
 
   const categoriesMonth = currentMonthISO();
@@ -179,6 +181,7 @@ export function TransactionForm({
         category: categoryCheck.value,
         date,
         referenceMonth: month,
+        isPaid,
       },
       {
         // Aqui, e não no useMutation: este callback não dispara se a tela já
@@ -276,6 +279,16 @@ export function TransactionForm({
           value={month}
           onChange={setMonth}
           accessibilityLabel='mês de competência'
+        />
+      </FormField>
+
+      {/* Último campo, como no web: o padrão (pago) atende a maioria */}
+      <FormField label='situação'>
+        <PaidSelect
+          value={isPaid}
+          onChange={setIsPaid}
+          type={type}
+          disabled={saving}
         />
       </FormField>
 

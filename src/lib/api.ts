@@ -333,6 +333,12 @@ export type TransactionInput = {
   category: string;
   /** "YYYY-MM": mês de competência. */
   referenceMonth: string;
+  /**
+   * Pago/recebido. Opcional na API (sem ele, o lançamento nasce pago e a
+   * edição mantém o atual), mas o app sempre manda. Precisa da 4j: sem ela,
+   * a edição com isPaid dá 400.
+   */
+  isPaid: boolean;
 };
 
 /** Despesa que passou de 80% do limite da categoria no mês de competência. */

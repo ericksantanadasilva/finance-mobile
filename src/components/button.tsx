@@ -64,6 +64,12 @@ const VARIANTS = {
     tone: 'expense',
     shadow: '--expense',
   },
+  // Pendente escolhido no campo Situação (o web troca o --ink por --warning)
+  warning: {
+    container: 'border-warning bg-surface',
+    tone: 'warning',
+    shadow: '--warning',
+  },
 } satisfies Record<string, VariantStyle>;
 
 const SIZES = {

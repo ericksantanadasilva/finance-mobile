@@ -127,7 +127,7 @@ O que o app precisa de cada rota está em [ESCRITA_BACKEND.md](ESCRITA_BACKEND.m
       por competência, contando tudo. Depois, em passo separado: "pago?" no
       lançamento e na edição (5h). Detalhes em
       [ESCRITA_BACKEND.md](ESCRITA_BACKEND.md#depois-da-escrita-saldo-pelo-pago-get-apiv1dashboard)
-- [ ] **5h** Lançar já pendente (depende da 4j da API, que precisa estar
+- [x] **5h** Lançar já pendente (depende da 4j da API, que precisa estar
       publicada antes do app): campo "Situação" no formulário de transação
       (pago / a pagar, ou recebido / a receber), no padrão do seletor de tipo;
       pago ao lançar, o valor da transação ao editar. `isPaid` no
