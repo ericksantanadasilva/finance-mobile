@@ -99,20 +99,21 @@ Toda tela: carregando (skeleton), vazio, erro e sucesso; puxar para atualizar;
 Depende das rotas de escrita do backend (Etapa 4 do `PLANO_API_MOBILE.md`).
 O que o app precisa de cada rota está em [ESCRITA_BACKEND.md](ESCRITA_BACKEND.md).
 
-- [ ] **5a** Base dos formulários: `Label`, campo de valor em R$, seletor de
-      data e de mês, diálogo/folha de baixo, confirmação destrutiva, aviso de
-      sucesso/erro; `useMutation` + invalidação das consultas afetadas. Decidir a
-      validação no app (Zod como no backend?) e se o seletor de data nativo
-      exige pacote com código nativo (build nova)
-- [ ] **5b** Lançar e editar transação (mês de competência, categoria existente
+- [x] **5a** Base dos formulários: `Label`, campo de valor em R$, seletor de
+      data e de mês, formulário em rota modal (`FormScreen`), confirmação
+      destrutiva (`ConfirmDialog`), aviso de sucesso/erro (toast);
+      `useMutation` + invalidação das consultas afetadas. Validação própria em
+      `lib/forms` (sem Zod no app); calendário do `@expo/ui`, que já estava na
+      build (sem pacote novo nem build nova)
+- [x] **5b** Lançar e editar transação (mês de competência, categoria existente
       ou nova); mostrar o alerta de orçamento que volta na resposta
-- [ ] **5c** Marcar como pago/recebido (com desfazer) e excluir transação
-- [ ] **5d** Definir e remover o limite mensal de uma categoria
-- [ ] **5e** Recorrência: criar, pausar/retomar e excluir (o histórico fica).
+- [x] **5c** Marcar como pago/recebido (com desfazer) e excluir transação
+- [x] **5d** Definir e remover o limite mensal de uma categoria
+- [x] **5e** Recorrência: criar, pausar/retomar e excluir (o histórico fica).
       Fora da 5e: editar regra (não existe na API nem no web). Antes, decidir o
       que acontece com as ocorrências já lançadas (só as próximas mudam?); até
       lá, excluir e criar de novo
-- [ ] **5f** Metas: criar e adicionar valor. Fora da 5f: editar e excluir meta
+- [x] **5f** Metas: criar e adicionar valor. Fora da 5f: editar e excluir meta
       (o web tem; a API ainda não). Estão no "Depois" da 4h do
       `PLANO_API_MOBILE.md` (`PATCH /goals/:id` e `DELETE /goals/:id`)
 - [ ] **5g** Saldo pelo pago (depois da 5f; depende da 4b da API): saldo atual
