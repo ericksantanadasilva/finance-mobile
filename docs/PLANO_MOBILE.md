@@ -125,8 +125,15 @@ O que o app precisa de cada rota está em [ESCRITA_BACKEND.md](ESCRITA_BACKEND.m
       atrasadas com selo "atrasada"; meses futuros fora) e saldo previsto
       (atual + a receber − a pagar). Receitas, despesas e limites continuam
       por competência, contando tudo. Depois, em passo separado: "pago?" no
-      lançamento e na edição. Detalhes em
+      lançamento e na edição (5h). Detalhes em
       [ESCRITA_BACKEND.md](ESCRITA_BACKEND.md#depois-da-escrita-saldo-pelo-pago-get-apiv1dashboard)
+- [ ] **5h** Lançar já pendente (depende da 4j da API, que precisa estar
+      publicada antes do app): campo "Situação" no formulário de transação
+      (pago / a pagar, ou recebido / a receber), no padrão do seletor de tipo;
+      pago ao lançar, o valor da transação ao editar. `isPaid` no
+      `TransactionInput`: o lançamento manda o escolhido, a edição sempre manda
+      o atual. Desmarcar fica na edição e no "desfazer" do aviso. Contrato em
+      [ESCRITA_BACKEND.md](ESCRITA_BACKEND.md#depois-passo-separado-lançar-já-pendente)
 
 Todo formulário: validação com mensagem no campo, botão desativado e com
 "salvando..." durante o envio, sucesso visível, erro da API em `ErrorBox`,

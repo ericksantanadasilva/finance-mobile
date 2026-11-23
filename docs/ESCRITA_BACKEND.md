@@ -137,7 +137,10 @@ Usa `setTransactionPaid(userId, id, isPaid)`.
 quando não encontra → `404`.
 
 Sugestão para a rota única: o body é **um dos dois formatos** (edição completa
-ou `{ isPaid }`), validado com `z.union`. O app não mistura os dois.
+ou `{ isPaid }`), validado com `z.union`. Até a 4j, o app não mistura os dois;
+depois dela, a edição completa também leva `isPaid`, e só o body com apenas
+`isPaid` é tratado como marcar/desfazer (ver "Depois (passo separado): lançar
+já pendente").
 
 ### 4. Excluir transação: `DELETE /api/v1/transactions/:id`
 
@@ -426,10 +429,40 @@ mudou.
 ### Depois (passo separado): lançar já pendente
 
 Hoje só recorrências ficam pendentes, então o card de pendentes mostraria só
-elas. Num passo seguinte:
+elas. Item **4j** do `PLANO_API_MOBILE.md`; no app, item **5h** do
+`PLANO_MOBILE.md`.
 
-- `isPaid` opcional no body do lançamento (`POST /transactions`) e da edição
-  completa (`PATCH /transactions/:id`), no `transactionBodySchema`, com padrão
-  `true`.
-- O web ganha "desmarcar" (o `TransactionStatus` hoje só marca) e o campo
-  "pago?" no lançamento; o app, o mesmo campo no formulário.
+Contrato:
+
+- `isPaid` opcional no `transactionBodySchema` (`z.boolean().optional()`),
+  usado pelo lançamento (`POST /transactions`) e pela edição completa
+  (`PATCH /transactions/:id`). Sem `.default(true)` no schema: o padrão
+  ficaria também na edição e marcaria como paga uma pendente editada sem o
+  campo.
+- Lançamento sem `isPaid`: nasce pago (`createTransaction` usa
+  `data.isPaid ?? true`, igual ao default do banco).
+- Edição sem `isPaid`: mantém o valor atual (o Prisma ignora `undefined`).
+  Com o campo, equivale a marcar ou desmarcar, inclusive numa ocorrência de
+  recorrência.
+- Formato do `PATCH`: é "marcar/desfazer" (seção 3) só quando a única chave do
+  body é `isPaid`; qualquer outro body é edição completa. Hoje basta ter a
+  chave `isPaid` para ir ao schema estrito de marcar, e uma edição com
+  `isPaid` dá 400.
+- A resposta não muda (`TransactionItem` já tem `isPaid`); o `budgetAlert`
+  também não (o orçamento conta tudo, por competência).
+- Nada mais muda de origem: chat, rota de integração, importação da IA e
+  recorrências continuam como hoje (os três primeiros nascem pagos).
+
+Web: campo "Situação" no diálogo de lançar e editar (pago / a pagar, ou
+recebido / a receber), e "voltar para pendente" no menu "…" das pagas, com
+"Desfazer" no aviso.
+
+App:
+
+- `TransactionInput` ganha `isPaid?: boolean`. O lançamento manda o valor
+  escolhido; a edição sempre manda o valor atual do formulário.
+- Campo "Situação" no formulário, no padrão do seletor de tipo: pago ao lançar,
+  o valor da transação ao editar. Desmarcar fica na edição (e no "desfazer" do
+  aviso, como hoje).
+- **Publicar a API antes do app.** No backend sem a 4j, o `POST` descarta o
+  `isPaid` sem avisar (o lançamento entra pago) e a edição com `isPaid` dá 400.
