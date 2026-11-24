@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { AppState } from 'react-native';
 
 import {
   ApiError,
@@ -18,6 +19,7 @@ import {
   type User,
 } from './api';
 import { getGoogleIdToken, signOutGoogle } from './google-auth';
+import { removePushDevice, resetPushSync, syncPushDevice } from './push';
 import { loadTokens } from './session';
 
 export type SessionState =
@@ -76,8 +78,23 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   // dados do anterior. Roda depois de o Stack.Protected desmontar as abas,
   // então nenhuma tela tenta recarregar sem tokens.
   useEffect(() => {
-    if (session.status === 'signedOut') queryClient.clear();
+    if (session.status === 'signedOut') {
+      queryClient.clear();
+      resetPushSync();
+    }
   }, [session.status, queryClient]);
+
+  // Push: com sessão, registra o aparelho ao abrir e ao voltar ao app (ex.:
+  // depois de permitir nos ajustes). Nunca pede permissão daqui
+  const signedIn = session.status === 'signedIn';
+  useEffect(() => {
+    if (!signedIn) return;
+    void syncPushDevice();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void syncPushDevice();
+    });
+    return () => subscription.remove();
+  }, [signedIn]);
 
   async function signIn() {
     const idToken = await getGoogleIdToken();
@@ -89,6 +106,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }
 
   async function signOut() {
+    // Antes do logout: o DELETE /devices ainda precisa dos tokens
+    await removePushDevice();
     await logout();
     try {
       await signOutGoogle();

@@ -530,3 +530,25 @@ export async function addToGoal(id: string, amount: number) {
   );
   return data.goal;
 }
+
+// ---------------------------------------------------------------------------
+// Aparelhos (push)
+
+/**
+ * Registra (ou renova) o aparelho para push, ligado à sessão atual. Upsert
+ * pelo token no servidor: chamar a cada abertura é seguro.
+ */
+export async function registerPushDevice(expoPushToken: string) {
+  const data = await apiFetch<{ device: { id: string } }>('/api/v1/devices', {
+    method: 'POST',
+    body: { expoPushToken, platform: 'android' },
+  });
+  return data.device;
+}
+
+/** Para de enviar push ao aparelho (204; 404 se já não existir). */
+export function deletePushDevice(id: string) {
+  return apiFetch<void>(`/api/v1/devices/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}

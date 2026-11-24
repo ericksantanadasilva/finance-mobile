@@ -26,6 +26,7 @@ import { EmptyState } from '@/components/empty-state';
 import { ErrorBox } from '@/components/error-box';
 import { Icon } from '@/components/icon';
 import { Page } from '@/components/page';
+import { PushPromptCard } from '@/components/push-cards';
 import { StatCard, StatCardSkeleton } from '@/components/stat-card';
 import { ApiError, getDashboard, type DashboardTotal } from '@/lib/api';
 import { currentMonthSummary } from '@/lib/dashboard';
@@ -58,6 +59,8 @@ export default function Overview() {
         </Button>
       }
     >
+      {/* Só aparece enquanto a permissão de avisos nunca foi pedida */}
+      <PushPromptCard />
       {query.isPending ? (
         <>
           <StatCardSkeleton hasNote />

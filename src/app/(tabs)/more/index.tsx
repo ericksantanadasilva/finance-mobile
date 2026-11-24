@@ -14,6 +14,7 @@ import { Card, CardContent, CardHeader } from '@/components/card';
 import { ErrorBox } from '@/components/error-box';
 import { Icon } from '@/components/icon';
 import { Page } from '@/components/page';
+import { PushSettingsCard } from '@/components/push-cards';
 import { Text } from '@/components/text';
 import { getMe } from '@/lib/api';
 import { breakAccessTokenForTesting, loadTokens } from '@/lib/session';
@@ -62,6 +63,8 @@ export default function More() {
           </Link>
         ))}
       </Card>
+
+      <PushSettingsCard />
 
       <Card>
         <CardHeader>sua conta</CardHeader>

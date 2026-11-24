@@ -11,11 +11,13 @@ import { CenteredScreen } from '@/components/centered-screen';
 import { ErrorBox } from '@/components/error-box';
 import { Text } from '@/components/text';
 import { ToastProvider } from '@/components/toast';
+import { showNotificationsInForeground } from '@/lib/push';
 import { queryClient } from '@/lib/query-client';
 import { SessionProvider, useSession } from '@/lib/session-context';
 
 // O splash fica na tela até a sessão ser confirmada (evita piscar o login)
 SplashScreen.preventAutoHideAsync();
+showNotificationsInForeground();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

@@ -166,7 +166,7 @@ Enhanced Security são do backend, mas na ordem certa: o token no `.env` da API
 **antes** de ligar o Enhanced Security, senão o envio passa a dar
 `UNAUTHORIZED`.
 
-- [ ] **6a** Pacote e build:
+- [x] **6a** Pacote e build:
   - `expo-notifications` 58.1.8, fixa. O SDK 58 pede `~58.1.9`, mas ela saiu
     em 11/11/2026 (menos de 2 semanas); o `expo-doctor` avisa até a troca.
     Trocar pela 58.1.9 a partir de 25/11/2026, antes da 7d. `expo-constants`
