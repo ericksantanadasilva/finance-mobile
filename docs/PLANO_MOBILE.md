@@ -164,7 +164,9 @@ Antes da 6a: Firebase, credencial FCM V1 no expo.dev e a variável
 `GOOGLE_SERVICES_JSON` no EAS (passos no navegador). `EXPO_ACCESS_TOKEN` e
 Enhanced Security são do backend, mas na ordem certa: o token no `.env` da API
 **antes** de ligar o Enhanced Security, senão o envio passa a dar
-`UNAUTHORIZED`.
+`UNAUTHORIZED`. Feito: Enhanced Security ligado na conta ES Labs depois do
+primeiro envio; o `EXPO_ACCESS_TOKEN` é de um robô com o papel Viewer, que
+basta para enviar.
 
 - [x] **6a** Pacote e build:
   - `expo-notifications` 58.1.8, fixa. O SDK 58 pede `~58.1.9`, mas ela saiu
@@ -186,7 +188,9 @@ Enhanced Security são do backend, mas na ordem certa: o token no `.env` da API
     variáveis de `preview`/`production` ficam para a 7b)
   - Development build nova no EAS e instalada no aparelho. O Expo Go não
     recebe push no Android desde o SDK 53
-- [ ] **6b** Registro do aparelho e logout:
+- [x] **6b** Registro do aparelho e logout (testado em dois aparelhos: envio,
+      chave única pulando o repetido, logout e permissão tirada nos ajustes;
+      o caminho de negar a permissão não foi testado):
   - `lib/push.ts` (app): ao abrir com sessão e permissão já concedida, cria o
     canal `default` (nome visível "Avisos"), pega o token (`getExpoPushTokenAsync` com o `projectId`
     do EAS), chama `POST /devices` e guarda o `device.id` no
@@ -205,18 +209,23 @@ Enhanced Security são do backend, mas na ordem certa: o token no `.env` da API
     revogada. Apaga o `device.id` guardado
   - App aberto: `setNotificationHandler` mostra o aviso (`shouldShowBanner`
     e `shouldShowList`)
-- [ ] **6c** Toque na notificação abre a tela certa:
+- [x] **6c** Toque na notificação abre a tela certa (testado com o app
+      aberto, em segundo plano e fechado, nos dois destinos):
   - No `_layout.tsx` raiz, com sessão: `getLastNotificationResponseAsync`
     (app fechado) e `addNotificationResponseReceivedListener` (app aberto ou
     em segundo plano). Usar as versões `Async`: as síncronas estão
     obsoletas no SDK 58
-  - `data.url` vem de fora: só abre os caminhos conhecidos
-    (`/transactions`, com o `status` que a tela já aceita, e
-    `/more/categories`). Qualquer outro é ignorado
+  - `data.url` vem de fora: só abre os dois valores que a API manda.
+    `/transactions?status=pending` abre Transações com pendentes **em todos
+    os meses**, como o "ver pendentes" (só com o status, a tela ficaria no
+    mês atual e as atrasadas sumiriam); `/more/categories` abre Categorias.
+    Qualquer outro é ignorado (fica no log)
   - Depois de abrir, `clearLastNotificationResponseAsync`, para não reabrir
     ao voltar ao app. Sem sessão, não navega (o login vem primeiro)
-  - Teste: `dispatch?dryRun=1` para ver o que sairia; depois o `dispatch`
-    real no dev com uma despesa pendente vencendo hoje
+  - O mesmo toque pode chegar pelo listener e pela última resposta: abre uma
+    vez só (pelo id da notificação)
+  - Teste nos três estados (aberto, em segundo plano, fechado), disparando
+    pelo `dispatch` no dev
 - [ ] **6d** Preferências de aviso (`notifications.due`, `.overdue` e
       `.budget` no `User.settings`, todas ligadas por padrão), quando a API
       tiver o `PATCH /me` (no "Depois" da 4h do `PLANO_API_MOBILE.md`)

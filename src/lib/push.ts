@@ -4,11 +4,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
-import { AndroidImportance } from 'expo-notifications';
+import {
+  AndroidImportance,
+  DEFAULT_ACTION_IDENTIFIER,
+  type NotificationResponse,
+} from 'expo-notifications';
+import { router, type Href } from 'expo-router';
 import * as SecureStore from 'expo-secure-store';
+import { useEffect } from 'react';
 import { Platform } from 'react-native';
 
 import { ApiError, deletePushDevice, registerPushDevice } from './api';
+import { ALL_MONTHS } from './dashboard';
+import type { SessionState } from './session-context';
 
 const DEVICE_ID_KEY = 'finance.pushDeviceId';
 const PROMPT_DISMISSED_KEY = 'finance.pushPromptDismissed';
@@ -176,4 +184,73 @@ export function useDismissPushPrompt() {
         status ? { ...status, promptDismissed: true } : status,
       ),
   });
+}
+
+// ---------------------------------------------------------------------------
+// Toque na notificação
+
+// Os únicos data.url que a API manda (financeiro/lib/notifications.ts). Vem de
+// fora: qualquer outro valor é ignorado, nunca vira navegação
+const NOTIFICATION_TARGETS = new Map<string, Href>([
+  // Vence hoje e atrasadas. Em todos os meses, como o "ver pendentes" da
+  // Visão Geral: só com o status, a tela abriria no mês atual e as atrasadas
+  // (de meses anteriores) ficariam de fora
+  [
+    '/transactions?status=pending',
+    {
+      pathname: '/transactions',
+      params: { status: 'pending', month: ALL_MONTHS },
+    },
+  ],
+  // Orçamento
+  ['/more/categories', '/more/categories'],
+]);
+
+// O mesmo toque pode chegar pelo listener e pela última resposta (app aberto
+// pelo toque): abre uma vez só
+let handledNotificationId: string | null = null;
+
+function openNotification(response: NotificationResponse) {
+  if (response.actionIdentifier !== DEFAULT_ACTION_IDENTIFIER) return;
+  const { identifier, content } = response.notification.request;
+  if (identifier === handledNotificationId) return;
+  handledNotificationId = identifier;
+
+  // Já tratada: não reabre ao voltar ao app nem no próximo login
+  void Notifications.clearLastNotificationResponseAsync();
+
+  const url: unknown = content.data?.url;
+  const target =
+    typeof url === 'string' ? NOTIFICATION_TARGETS.get(url) : undefined;
+  if (!target) {
+    console.warn(`Notificação com destino desconhecido: ${String(url)}`);
+    return;
+  }
+  router.navigate(target);
+}
+
+/**
+ * Tocar na notificação abre a tela do data.url: com o app fechado (a última
+ * resposta, lida quando a sessão confirma) e com ele aberto ou em segundo
+ * plano (listener). Sem sessão não navega, e o toque é descartado.
+ */
+export function useNotificationNavigation(status: SessionState['status']) {
+  useEffect(() => {
+    if (status === 'signedOut') {
+      void Notifications.clearLastNotificationResponseAsync();
+      return;
+    }
+    if (status !== 'signedIn') return;
+
+    let active = true;
+    void Notifications.getLastNotificationResponseAsync().then((response) => {
+      if (active && response) openNotification(response);
+    });
+    const subscription =
+      Notifications.addNotificationResponseReceivedListener(openNotification);
+    return () => {
+      active = false;
+      subscription.remove();
+    };
+  }, [status]);
 }

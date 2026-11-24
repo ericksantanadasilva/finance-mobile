@@ -11,7 +11,10 @@ import { CenteredScreen } from '@/components/centered-screen';
 import { ErrorBox } from '@/components/error-box';
 import { Text } from '@/components/text';
 import { ToastProvider } from '@/components/toast';
-import { showNotificationsInForeground } from '@/lib/push';
+import {
+  showNotificationsInForeground,
+  useNotificationNavigation,
+} from '@/lib/push';
 import { queryClient } from '@/lib/query-client';
 import { SessionProvider, useSession } from '@/lib/session-context';
 
@@ -44,6 +47,8 @@ export default function RootLayout() {
 function RootNavigator() {
   const { session } = useSession();
   const loading = session.status === 'loading';
+  // Antes dos returns abaixo: hooks sempre na mesma ordem
+  useNotificationNavigation(session.status);
 
   useEffect(() => {
     if (!loading) SplashScreen.hide();
