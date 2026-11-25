@@ -262,11 +262,16 @@ basta para enviar.
       voltar para pendente, excluir), limite de categoria (pôr e remover),
       aporte em meta e pausar/reativar recorrente)
 
-EAS Update configurado, ainda sem nenhum update publicado: `expo-updates` no
-app, `updates.url` do projeto no `app.json`, `runtimeVersion` pela política
-`fingerprint` (muda sozinho quando muda algo nativo, e aí o update antigo não
-chega à build nova) e um canal por perfil no `eas.json` (`development` e
-`production`).
+EAS Update configurado: `expo-updates` no app, `updates.url` do projeto no
+`app.json`, `runtimeVersion` pela política `fingerprint` (muda sozinho quando
+muda algo nativo, e aí o update antigo não chega à build nova) e um canal por
+perfil no `eas.json` (`development` e `production`). Testado em 25/11/2026: o
+primeiro update (a versão no rodapé da aba Mais) chegou ao APK de produção.
+Comando usado:
+
+```bash
+npx eas-cli update --channel production --environment production --platform android --message "..."
+```
 
 ### Etapa 8: acabamento
 
@@ -286,6 +291,15 @@ chega à build nova) e um canal por perfil no `eas.json` (`development` e
       (para prazos de meta) e rótulos para leitor de tela em cada dia e seta.
       O nativo não resolve: o `@expo/ui` não expõe o `dateFormatter` do
       Material 3, e a data por extenso em `headlineLarge` sai cortada
+
+## Depois
+
+- [ ] Cor de destaque da notificação no estilo do Pinterest (círculo claro com
+      o "FN." escuro na gaveta): campo `color` no plugin `expo-notifications`
+      do `app.json`. É nativo, entra no próximo build. Conferir no Poco
+      (HyperOS) e no Motorola
+- [ ] Novo dev client quando for preciso testar algo nativo: o instalado no
+      Motorola é anterior ao `expo-updates` e aos ícones novos
 
 ## Riscos e cuidados
 
