@@ -105,6 +105,12 @@
         "projectId": "e499054f-c7e2-4909-b241-04b282a38361"
       }
     },
-    "owner": "es-labs"
+    "owner": "es-labs",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/e499054f-c7e2-4909-b241-04b282a38361"
+    }
   }
 }
