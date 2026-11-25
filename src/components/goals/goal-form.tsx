@@ -1,12 +1,16 @@
 import { useMutation } from '@tanstack/react-query';
 import { router } from 'expo-router';
+import { Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Button } from '@/components/button';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { DateField } from '@/components/date-field';
 import { ErrorBox } from '@/components/error-box';
 import { FormField } from '@/components/form-field';
+import { GoalSummary } from '@/components/goals/goal-summary';
+import { Icon } from '@/components/icon';
 import { Input } from '@/components/input';
 import { MoneyInput } from '@/components/money-input';
 import { Text } from '@/components/text';
@@ -14,6 +18,7 @@ import { useToast } from '@/components/toast';
 import {
   ApiError,
   createGoal,
+  deleteGoal,
   updateGoal,
   type Goal,
   type GoalInput,
@@ -26,7 +31,11 @@ import {
   writeErrorMessage,
   type Check,
 } from '@/lib/forms';
-import { invalidateAfterWrite, replaceListItem } from '@/lib/query-client';
+import {
+  invalidateAfterWrite,
+  queryClient,
+  replaceListItem,
+} from '@/lib/query-client';
 
 type Field = 'name' | 'target' | 'current';
 type Errors = Partial<Record<Field, string>>;
@@ -56,7 +65,18 @@ function changedFields(goal: Goal, input: GoalInput): GoalUpdate {
 }
 
 /**
- * Criar ou editar meta (GoalDialog do web). Ao salvar, avisa, atualiza a lista
+ * Meta excluída em outro aparelho (404): o erro fica na tela e a lista por
+ * trás recarrega, já sem ela.
+ */
+function refreshIfGone(error: Error) {
+  if (error instanceof ApiError && error.status === 404) {
+    void invalidateAfterWrite('goal');
+  }
+}
+
+/**
+ * Criar ou editar meta (GoalDialog do web). Na edição, "excluir meta" no fim,
+ * com confirmação. Ao salvar, avisa, atualiza a lista
  * e fecha.
  */
 export function GoalForm({ goal, onSavingChange }: GoalFormProps) {
@@ -86,14 +106,37 @@ export function GoalForm({ goal, onSavingChange }: GoalFormProps) {
       void invalidateAfterWrite('goal');
       toast.show('success', goal ? 'Alterações salvas.' : 'Meta criada.');
     },
-    onError: (error) => {
-      // Excluída em outro aparelho: a lista por trás já sai sem ela
-      if (error instanceof ApiError && error.status === 404) {
-        void invalidateAfterWrite('goal');
-      }
-    },
+    onError: refreshIfGone,
   });
-  const saving = mutation.isPending;
+
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const removal = useMutation({
+    mutationFn: (id: string) => deleteGoal(id),
+    onMutate: () => onSavingChange?.(true),
+    onSettled: () => onSavingChange?.(false),
+    onSuccess: (_, id) => {
+      // Sai da lista na hora; a recarga confirma
+      queryClient.setQueryData<Goal[]>(['goals'], (goals) =>
+        goals?.filter((g) => g.id !== id),
+      );
+      void invalidateAfterWrite('goal');
+      toast.show('success', 'Meta excluída.');
+    },
+    onError: refreshIfGone,
+  });
+
+  const saving = mutation.isPending || removal.isPending;
+
+  function confirmDelete() {
+    if (!goal) return;
+    removal.mutate(goal.id, {
+      // Como no salvar: não volta uma a mais se a tela já fechou
+      onSuccess: () => {
+        setConfirmingDelete(false);
+        router.back();
+      },
+    });
+  }
 
   function clearError(field: Field) {
     setErrors((e) => ({ ...e, [field]: undefined }));
@@ -229,9 +272,44 @@ export function GoalForm({ goal, onSavingChange }: GoalFormProps) {
           accessibilityState={{ disabled: saving, busy: saving }}
           onPress={submit}
         >
-          {saving ? 'salvando...' : 'salvar'}
+          {mutation.isPending ? 'salvando...' : 'salvar'}
         </Button>
       </View>
+
+      {goal && (
+        <>
+          {/* Separada de cancelar/salvar, para não ser tocada por engano */}
+          <View className='border-t border-border-custom pt-5'>
+            <Button
+              variant='expense'
+              className='self-start px-4'
+              disabled={saving}
+              onPress={() => {
+                removal.reset();
+                setConfirmingDelete(true);
+              }}
+            >
+              <Icon icon={Trash2} tone='expense' />
+              excluir meta
+            </Button>
+          </View>
+          <ConfirmDialog
+            open={confirmingDelete}
+            title='Excluir meta'
+            description='A meta e o valor acumulado deixam de aparecer. Essa ação não poderá ser desfeita.'
+            detail={
+              <GoalSummary
+                goal={goal}
+                className='rounded-xl border border-border-custom p-3'
+              />
+            }
+            loading={removal.isPending}
+            error={removal.error ? writeErrorMessage(removal.error) : undefined}
+            onConfirm={confirmDelete}
+            onClose={() => setConfirmingDelete(false)}
+          />
+        </>
+      )}
     </View>
   );
 }
