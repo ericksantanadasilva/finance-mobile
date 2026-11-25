@@ -184,10 +184,11 @@ primeiro envio; o `EXPO_ACCESS_TOKEN` é de um robô com o papel Viewer, que
 basta para enviar.
 
 - [x] **6a** Pacote e build:
-  - `expo-notifications` 58.1.8, fixa. O SDK 58 pede `~58.1.9`, mas ela saiu
-    em 11/11/2026 (menos de 2 semanas); o `expo-doctor` avisa até a troca.
-    Trocar pela 58.1.9 a partir de 25/11/2026, no próximo build (Etapa 8). `expo-constants`
-    e `expo-device` já estavam instalados
+  - `expo-notifications` 58.1.9, fixa. Começou na 58.1.8 porque a 58.1.9
+    (a que o SDK 58 pede) saiu em 11/11/2026, com menos de 2 semanas. Feito:
+    trocada pela 58.1.9 no build de produção de 25/11/2026, com push
+    entregue no aparelho. `expo-constants` e `expo-device` já estavam
+    instalados
   - `app.config.ts` por cima do `app.json` (que continua sendo a base), só
     para `android.googleServicesFile = process.env.GOOGLE_SERVICES_JSON ??
     './google-services.json'`. O arquivo local serve para o `npx expo
@@ -195,8 +196,8 @@ basta para enviar.
   - `google-services.json` e a chave da conta de serviço do Firebase
     (`*-firebase-adminsdk-*.json`) no `.gitignore`
   - Plugin `expo-notifications` no `app.json`: ícone
-    `assets/images/notification-icon.png` (provisório: cópia do ícone
-    monocromático do template; o Android só usa a transparência), cor
+    `assets/images/notification-icon.png` ("FN." branco com fundo
+    transparente, gerado na 8a; o Android só usa a transparência), cor
     `#111111` (ink, o primary do web; no Android 12+ é o círculo atrás do
     ícone branco) e canal padrão `default`, o `channelId` que a API manda
   - `"environment": "development"` no perfil `development` do `eas.json` (as
@@ -261,13 +262,23 @@ basta para enviar.
       voltar para pendente, excluir), limite de categoria (pôr e remover),
       aporte em meta e pausar/reativar recorrente)
 
+EAS Update configurado, ainda sem nenhum update publicado: `expo-updates` no
+app, `updates.url` do projeto no `app.json`, `runtimeVersion` pela política
+`fingerprint` (muda sozinho quando muda algo nativo, e aí o update antigo não
+chega à build nova) e um canal por perfil no `eas.json` (`development` e
+`production`).
+
 ### Etapa 8: acabamento
 
-- [ ] **8a** Ícone e splash com a logo FN (fundo do splash no tema, não o azul
+- [x] **8a** Ícone e splash com a logo FN (fundo do splash no tema, não o azul
       do template; build nova), inclusive o ícone da notificação
-      (`notification-icon.png`, branco com fundo transparente)
+      (`notification-icon.png`, branco com fundo transparente). Gerados por
+      `npm run icons` (`scripts/gerar-icones.mjs`). Testado no build de
+      produção de 25/11/2026: ícone, ícone monocromático, splash claro e
+      escuro e "FN." na barra de status
 - [ ] **8b** (opcional) Rosca de categorias na Visão Geral com `react-native-svg`
-- [ ] **8c** Formas decorativas no login (magenta e roxo, como no web)
+- [x] **8c** Formas decorativas no login (magenta e roxo, como no web).
+      Testado no build de produção de 25/11/2026
 - [ ] **8d** README com prints das telas nos dois modos
 - [ ] **8e** Calendário próprio em JS no lugar do `DatePickerDialog` nativo:
       cabeçalho com a data num formato que caiba (ex.: "dom., 22 de nov."),
