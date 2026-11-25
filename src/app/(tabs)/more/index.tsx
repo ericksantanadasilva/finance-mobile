@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { Image } from 'expo-image';
 import { Link, type Href } from 'expo-router';
 import {
@@ -114,8 +115,44 @@ export default function More() {
           [dev] vitrine do tema
         </Link>
       )}
+
+      <Text
+        selectable
+        variant='value'
+        tone='muted'
+        className='mt-2 self-center text-center text-xs'
+      >
+        {versionLabel()}
+      </Text>
     </Page>
   );
+}
+
+const updateDate = new Intl.DateTimeFormat('pt-BR', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+});
+
+/**
+ * Versão e JavaScript em uso, para saber se um update do EAS chegou. O JS
+ * embutido também tem `updateId`, por isso o `isEmbeddedLaunch` vem antes.
+ */
+function versionLabel() {
+  const version = `versão ${Constants.expoConfig?.version ?? '?'}`;
+  if (__DEV__) return `${version} · dev`;
+  // Sob demanda: um dev client antigo, sem o módulo nativo, quebraria a tela
+  // inteira com o import no topo
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const Updates: typeof import('expo-updates') = require('expo-updates');
+  if (Updates.isEmbeddedLaunch || !Updates.updateId) {
+    return `${version} · build`;
+  }
+  const id = Updates.updateId.slice(0, 8);
+  const date = Updates.createdAt
+    ? ` de ${updateDate.format(Updates.createdAt)}`
+    : '';
+  return `${version} · update ${id}${date}`;
 }
 
 type ShortcutRowProps = {
