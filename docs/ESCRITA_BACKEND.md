@@ -421,7 +421,8 @@ mudou.
 1. API: `isPaid` nos totais do dashboard (nenhum número muda ainda).
 2. App: os cálculos e cards novos, tratando `isPaid` ausente como pago (funciona
    antes e depois do item 1).
-3. Produção: o script de dados, se a medição pedir, antes do item 4.
+3. Produção: o script de dados, se a medição pedir, antes do item 4. Não foi
+   necessário: a medição de 24/11/2026 em produção deu 0 pendentes atrasadas.
 4. API e web: `carryOver` só com o pago; Visão Geral do web com saldo pelo pago,
    pendentes e previsto. É aqui que o saldo muda para as pessoas: junto com o
    app publicado.

@@ -171,7 +171,7 @@ basta para enviar.
 - [x] **6a** Pacote e build:
   - `expo-notifications` 58.1.8, fixa. O SDK 58 pede `~58.1.9`, mas ela saiu
     em 11/11/2026 (menos de 2 semanas); o `expo-doctor` avisa até a troca.
-    Trocar pela 58.1.9 a partir de 25/11/2026, antes da 7d. `expo-constants`
+    Trocar pela 58.1.9 a partir de 25/11/2026, no próximo build (Etapa 8). `expo-constants`
     e `expo-device` já estavam instalados
   - `app.config.ts` por cima do `app.json` (que continua sendo a base), só
     para `android.googleServicesFile = process.env.GOOGLE_SERVICES_JSON ??
@@ -230,17 +230,21 @@ basta para enviar.
       `.budget` no `User.settings`, todas ligadas por padrão), quando a API
       tiver o `PATCH /me` (no "Depois" da 4h do `PLANO_API_MOBILE.md`)
 
-### Etapa 7: publicação
+### Etapa 7: publicação (concluída)
 
-- [ ] **7a** API em produção com HTTPS (VPS + reverse proxy), migrations
+- [x] **7a** API em produção com HTTPS (VPS + reverse proxy), migrations
       `add_mobile_session` e `add_goal_created_at` no banco de produção,
       `MOBILE_JWT_SECRET` e `GOOGLE_MOBILE_CLIENT_IDS` no ambiente
-- [ ] **7b** Perfis `preview` e `production` no `eas.json`, com
-      `EXPO_PUBLIC_API_URL` (HTTPS) nas variáveis do EAS
-- [ ] **7c** Client Android do Google para a chave de produção (SHA-1 do EAS e,
+- [x] **7b** Perfis `preview` e `production` no `eas.json`, com
+      `EXPO_PUBLIC_API_URL` (HTTPS) nas variáveis do EAS. Perfil `preview`
+      dispensado: o `production` já gera APK com distribuição interna
+- [x] **7c** Client Android do Google para a chave de produção (SHA-1 do EAS e,
       se for para a Play Store, a da Play)
-- [ ] **7d** Build de produção (APK para instalar direto ou AAB para a Play
-      Store) e teste completo contra a API de produção
+- [x] **7d** Build de produção (APK para instalar direto ou AAB para a Play
+      Store) e teste completo contra a API de produção (testado em
+      25/11/2026 num Android: transações (criar, editar, marcar como paga,
+      voltar para pendente, excluir), limite de categoria (pôr e remover),
+      aporte em meta e pausar/reativar recorrente)
 
 ### Etapa 8: acabamento
 
