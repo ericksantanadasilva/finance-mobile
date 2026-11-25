@@ -70,6 +70,9 @@ export default function Goals() {
                   params: { id: goal.id },
                 })
               }
+              onEdit={() =>
+                router.push({ pathname: '/goal', params: { id: goal.id } })
+              }
             />
           ))}
         </>

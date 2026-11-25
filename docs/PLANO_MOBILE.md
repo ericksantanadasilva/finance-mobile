@@ -116,9 +116,8 @@ O que o app precisa de cada rota está em [ESCRITA_BACKEND.md](ESCRITA_BACKEND.m
       Fora da 5e: editar regra (não existe na API nem no web). Antes, decidir o
       que acontece com as ocorrências já lançadas (só as próximas mudam?); até
       lá, excluir e criar de novo
-- [x] **5f** Metas: criar e adicionar valor. Fora da 5f: editar e excluir meta
-      (o web tem; a API ainda não). Estão no "Depois" da 4h do
-      `PLANO_API_MOBILE.md` (`PATCH /goals/:id` e `DELETE /goals/:id`)
+- [x] **5f** Metas: criar e adicionar valor. Editar e excluir meta ficaram
+      para a 5i
 - [x] **5g** Saldo pelo pago (depois da 5f; depende da 4i da API): saldo atual
       só com o pago/recebido (também "meses anteriores" e o saldo anterior de
       Transações). Decisão: "saldo" é sempre só o pago, em qualquer tela; em
@@ -142,6 +141,22 @@ O que o app precisa de cada rota está em [ESCRITA_BACKEND.md](ESCRITA_BACKEND.m
       `TransactionInput`: o lançamento manda o escolhido, a edição sempre manda
       o atual. Desmarcar fica na edição e no "desfazer" do aviso. Contrato em
       [ESCRITA_BACKEND.md](ESCRITA_BACKEND.md#depois-passo-separado-lançar-já-pendente)
+- [ ] **5i** Editar e excluir meta (depende da branch `metas-edicao` do
+      `financeiro`, que precisa estar publicada antes do app: sem ela, a API
+      de produção responde 404 e o app mostra "este item não existe mais").
+      `PATCH /goals/:id` parcial (`name`, `targetAmount`, `currentAmount`,
+      `deadline`; `null` tira o prazo) e `DELETE /goals/:id` (204):
+  - Entrada: lápis na faixa do card ("editar meta {nome}"), como o limite
+      de categoria. Botão no rodapé ao lado do "adicionar valor" não cabe em
+      360px
+  - Edição na mesma rota da criação (`/goal?id=...`), preenchida com a meta
+      da lista. Manda só os campos alterados: mandar o `currentAmount` sem
+      mexer apagaria um aporte feito em outro aparelho. Nada mudou: só fecha.
+      O "já guardado" editável corrige aporte errado (não há histórico)
+  - "excluir meta" no fim da edição, com `ConfirmDialog` e o resumo da meta
+      (`GoalSummary`, o mesmo do topo do aporte)
+  - 404 (excluída em outro aparelho): o erro fica na tela ou no diálogo e a
+      lista recarrega. Não é tratado como sucesso, pela razão acima
 
 Todo formulário: validação com mensagem no campo, botão desativado e com
 "salvando..." durante o envio, sucesso visível, erro da API em `ErrorBox`,

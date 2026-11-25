@@ -1,15 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Target } from 'lucide-react-native';
 import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { ErrorBox } from '@/components/error-box';
 import { FormField } from '@/components/form-field';
-import { Icon } from '@/components/icon';
+import { GoalSummary } from '@/components/goals/goal-summary';
 import { MoneyInput } from '@/components/money-input';
-import { Text } from '@/components/text';
 import { useToast } from '@/components/toast';
 import { addToGoal, type Goal } from '@/lib/api';
 import { formatCurrency } from '@/lib/format';
@@ -33,7 +31,6 @@ export function GoalContributionForm({
   const toast = useToast();
   const [amount, setAmount] = useState('');
   const [error, setError] = useState<string>();
-  const remaining = Math.max(goal.targetAmount - goal.currentAmount, 0);
 
   const mutation = useMutation({
     mutationFn: (value: number) => addToGoal(goal.id, value),
@@ -69,22 +66,7 @@ export function GoalContributionForm({
 
   return (
     <View className='gap-5'>
-      <View className='gap-1'>
-        <View className='flex-row items-center gap-2'>
-          <Icon icon={Target} />
-          {/* Dado do usuário: como foi cadastrado */}
-          <Text numberOfLines={2} className='shrink text-base font-bold'>
-            {goal.name}
-          </Text>
-        </View>
-        <Text variant='value' tone='muted' className='text-sm font-medium'>
-          Acumulado {formatCurrency(goal.currentAmount)} de{' '}
-          {formatCurrency(goal.targetAmount)}
-          {remaining > 0
-            ? ` · faltam ${formatCurrency(remaining)}`
-            : ' · concluída'}
-        </Text>
-      </View>
+      <GoalSummary goal={goal} />
 
       <FormField label='quanto deseja adicionar?' error={error}>
         <MoneyInput

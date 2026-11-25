@@ -13,6 +13,7 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { CenteredScreen } from '@/components/centered-screen';
 import { ErrorBox } from '@/components/error-box';
+import { LoginBlobs } from '@/components/login-blobs';
 import { Text } from '@/components/text';
 import { ApiError } from '@/lib/api';
 import { useSession } from '@/lib/session-context';
@@ -59,7 +60,7 @@ export default function Login() {
   }
 
   return (
-    <CenteredScreen>
+    <CenteredScreen decoration={<LoginBlobs />}>
       {/* Como o login do web: card adesivo com a sombra grande */}
       <Card shadow='lg' className='w-full max-w-md gap-6 p-6'>
         <View className='items-center gap-6'>

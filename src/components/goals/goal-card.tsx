@@ -3,10 +3,11 @@ import {
   CalendarX,
   CircleCheck,
   CirclePlus,
+  Pencil,
   Target,
   TriangleExclamationPoint,
 } from 'lucide-react-native';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { Card, CardContent, CardHeader } from '@/components/card';
@@ -20,6 +21,9 @@ import { goalPace, goalProgress, type GoalPace } from '@/lib/goals';
 
 // Cor da barra pelo ritmo, nunca pela porcentagem pura (meta no começo não é
 // problema). A cor só reforça: abaixo do ritmo e vencida têm texto e ícone
+// O lápis é pequeno: a área de toque passa de 44px
+const EDIT_HIT_SLOP = { top: 12, bottom: 12, left: 12, right: 12 };
+
 function barClassName(pace: GoalPace) {
   if (pace.status === 'overdue') return 'bg-expense';
   if (pace.status === 'behind') return 'bg-warning';
@@ -35,14 +39,17 @@ function paceLabel(pace: GoalPace) {
 /**
  * Meta (card do web): acumulado em destaque, objetivo ao lado, barra e prazo.
  * Nas metas com prazo, a barra segue o ritmo (ver lib/goals). Com
- * `onAddValue`, o rodapé tem "adicionar valor" (aporte), como no web.
+ * `onAddValue`, o rodapé tem "adicionar valor" (aporte), como no web; com
+ * `onEdit`, o lápis na faixa abre a edição (o excluir fica lá dentro).
  */
 export function GoalCard({
   goal,
   onAddValue,
+  onEdit,
 }: {
   goal: Goal;
   onAddValue?: () => void;
+  onEdit?: () => void;
 }) {
   const progress = goalProgress(goal);
   const pace = goalPace(goal);
@@ -64,6 +71,17 @@ export function GoalCard({
             {goal.name}
           </Text>
         </View>
+        {onEdit && (
+          <Pressable
+            accessibilityRole='button'
+            accessibilityLabel={`editar meta ${goal.name}`}
+            hitSlop={EDIT_HIT_SLOP}
+            onPress={onEdit}
+            className='rounded-md p-1 active:opacity-60'
+          >
+            <Icon icon={Pencil} tone='band-foreground' />
+          </Pressable>
+        )}
       </CardHeader>
       <CardContent className='gap-5'>
         <View className='flex-row items-end justify-between gap-3'>
