@@ -522,6 +522,25 @@ export async function createGoal(input: GoalInput) {
   return data.goal;
 }
 
+/** Só os campos que mudaram; `deadline: null` remove o prazo. */
+export type GoalUpdate = Partial<GoalInput>;
+
+/** Edição parcial; volta no formato de GET /goals (o createdAt não muda). */
+export async function updateGoal(id: string, input: GoalUpdate) {
+  const data = await apiFetch<{ goal: Goal }>(
+    `/api/v1/goals/${encodeURIComponent(id)}`,
+    { method: 'PATCH', body: input },
+  );
+  return data.goal;
+}
+
+/** Exclui a meta (204, sem corpo). Não há como desfazer. */
+export function deleteGoal(id: string) {
+  return apiFetch<void>(`/api/v1/goals/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
 /** Aporte (> 0, incremento no servidor). Passar do objetivo é permitido. */
 export async function addToGoal(id: string, amount: number) {
   const data = await apiFetch<{ goal: Goal }>(
