@@ -14,6 +14,7 @@ import {
   ApiError,
   getMe,
   loginWithGoogle,
+  loginWithPassword,
   logout,
   setSessionEndedHandler,
   type User,
@@ -33,6 +34,8 @@ type SessionContextValue = {
   session: SessionState;
   /** Login com Google. Retorna false se o usuário cancelar; erros sobem para a tela. */
   signIn: () => Promise<boolean>;
+  /** Login por e-mail e senha; erros (ex.: 401, 429) sobem para a tela. */
+  signInWithPassword: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   /** Tenta de novo confirmar a sessão depois de um erro. */
   retry: () => void;
@@ -105,6 +108,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     return true;
   }
 
+  async function signInWithPassword(email: string, password: string) {
+    const user = await loginWithPassword(email, password);
+    setSession({ status: 'signedIn', user });
+  }
+
   async function signOut() {
     // Antes do logout: o DELETE /devices ainda precisa dos tokens
     await removePushDevice();
@@ -124,7 +132,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <SessionContext.Provider value={{ session, signIn, signOut, retry }}>
+    <SessionContext.Provider
+      value={{ session, signIn, signInWithPassword, signOut, retry }}
+    >
       {children}
     </SessionContext.Provider>
   );

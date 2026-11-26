@@ -25,12 +25,21 @@ type RequestOptions = {
 /** Erro de uma chamada à API. `status` 0 = sem resposta (rede ou tempo esgotado). */
 export class ApiError extends Error {
   readonly status: number;
+  /** Header Retry-After em segundos (ex.: 429 do login), quando vier um inteiro. */
+  readonly retryAfterSeconds?: number;
 
-  constructor(status: number, message: string) {
+  constructor(status: number, message: string, retryAfterSeconds?: number) {
     super(message);
     this.name = 'ApiError';
     this.status = status;
+    this.retryAfterSeconds = retryAfterSeconds;
   }
+}
+
+/** Só o formato em segundos: o backend não manda a data HTTP. */
+function parseRetryAfter(value: string | null) {
+  if (!value || !/^\d+$/.test(value.trim())) return undefined;
+  return Number(value.trim());
 }
 
 // ---------------------------------------------------------------------------
@@ -96,7 +105,11 @@ async function parse<T>(response: Response): Promise<T> {
       typeof data.error === 'string'
         ? data.error
         : `HTTP ${response.status}`;
-    throw new ApiError(response.status, message);
+    throw new ApiError(
+      response.status,
+      message,
+      parseRetryAfter(response.headers.get('Retry-After')),
+    );
   }
   return data as T;
 }
@@ -178,12 +191,18 @@ export async function apiFetch<T>(
 // ---------------------------------------------------------------------------
 // Rotas de autenticação
 
-/** Troca o ID token do Google pelos tokens da API e salva no aparelho. */
-export async function loginWithGoogle(idToken: string): Promise<User> {
-  const response = await send('/api/v1/auth/google', {
+/**
+ * Login (Google ou senha): manda as credenciais com o aparelho, salva os
+ * tokens devolvidos e retorna o usuário. As duas rotas respondem igual.
+ */
+async function startSession(
+  path: '/api/v1/auth/google' | '/api/v1/auth/login',
+  credentials: Record<string, string>,
+): Promise<User> {
+  const response = await send(path, {
     method: 'POST',
     body: {
-      idToken,
+      ...credentials,
       deviceName: Device.modelName ?? undefined,
       platform:
         Platform.OS === 'ios' || Platform.OS === 'android'
@@ -198,6 +217,20 @@ export async function loginWithGoogle(idToken: string): Promise<User> {
     refreshToken: data.refreshToken,
   });
   return data.user;
+}
+
+/** Troca o ID token do Google pelos tokens da API e salva no aparelho. */
+export function loginWithGoogle(idToken: string) {
+  return startSession('/api/v1/auth/google', { idToken });
+}
+
+/**
+ * Login por e-mail e senha. 401 = credenciais inválidas (mesma resposta para
+ * e-mail inexistente, senha errada e conta só com Google); 429 = muitas
+ * tentativas, com `retryAfterSeconds`.
+ */
+export function loginWithPassword(email: string, password: string) {
+  return startSession('/api/v1/auth/login', { email, password });
 }
 
 /**

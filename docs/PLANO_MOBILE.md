@@ -24,7 +24,7 @@ Este repositório é **público**: nenhum segredo entra no Git.
 | 5   | Navegação            | `Tabs` em JavaScript (estilizáveis no padrão neo-brutalista), não `NativeTabs`                                                     |
 | 6   | Busca de dados       | `@tanstack/react-query`, instalado na etapa em que for usado                                                                       |
 | 7   | Visão Geral          | Sem biblioteca de gráficos na primeira versão (cards e barras com `View`)                                                          |
-| 8   | Login                | Google Sign-In nativo (`@react-native-google-signin/google-signin`, API "Original"), `webClientId` = `GOOGLE_CLIENT_ID` do backend |
+| 8   | Login                | Google Sign-In nativo (`@react-native-google-signin/google-signin`, API "Original"), `webClientId` = `GOOGLE_CLIENT_ID` do backend + e-mail e senha (`POST /auth/login`) |
 | 9   | Tokens               | Access token (1h) + refresh token no `expo-secure-store`                                                                           |
 | 10  | Formatação           | Prettier com aspas simples, igual ao `financeiro`                                                                                  |
 | 11  | Push: plataforma     | Só Android por enquanto (push no iOS exige o Apple Developer Program)                                                              |
@@ -292,7 +292,37 @@ npx eas-cli update --channel production --environment production --platform andr
       O nativo não resolve: o `@expo/ui` não expõe o `dateFormatter` do
       Material 3, e a data por extenso em `headlineLarge` sai cortada
 
+### Etapa 9: login por e-mail e senha
+
+Backend: `POST /api/v1/auth/login { email, password, deviceName?, platform? }`
+(branch `login-senha` do `financeiro`). Responde 200 igual ao `/auth/google`,
+400 de validação, 401 `Invalid credentials` (genérico: e-mail inexistente,
+senha errada ou conta só com Google) e 429 `Too many attempts` com
+`Retry-After` em segundos. Nenhuma dependência nova: só JS, então o
+`fingerprint` não muda e a tela pode ir por EAS Update.
+
+- [x] **9a** Cliente da API e sessão: `loginWithPassword` e `loginWithGoogle`
+      pelo mesmo `startSession` (salva os tokens e devolve o usuário),
+      `retryAfterSeconds` no `ApiError` e `signInWithPassword` no Context
+- [x] **9b** Ação à direita no `Input` (mostrar/ocultar senha, `Eye`/`EyeOff`)
+- [x] **9c** `CenteredScreen` sobe com o teclado (`KeyboardAvoidingView`)
+- [x] **9d** Tela de login: Google em `outline` em cima, divisor "ou",
+      e-mail e senha, "entrar" como ação principal e o texto "Criou a conta
+      com o Google? Use o botão acima.". 401 vira "E-mail ou senha
+      incorretos." (campos em erro e foco na senha); 429 vira "Muitas
+      tentativas. Tente de novo em X minutos." (pelo `Retry-After`). Testado
+      no aparelho em 26/11/2026 contra o backend de dev: validação, teclado
+      ("próximo" e "entrar"), senha errada, login certo, sair, Google, 429
+      com e-mail inventado e sem rede
+- [ ] **9e** EAS Update da tela de login para a produção. **Só depois do
+      deploy do backend `login-senha`**: antes disso o `/auth/login` não
+      existe em produção (404) e o login por senha mostraria "Erro no
+      servidor"
+
 ## Depois
+
+- [ ] Conferir a tela de login com a fonte do sistema em 200% (o rótulo do
+      Google pode ficar cortado)
 
 - [ ] Cor de destaque da notificação no estilo do Pinterest (círculo claro com
       o "FN." escuro na gaveta): campo `color` no plugin `expo-notifications`
