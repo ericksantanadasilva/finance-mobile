@@ -125,8 +125,11 @@ export default function Login() {
     try {
       await signInWithPassword(trimmedEmail, password);
     } catch (err) {
-      // Só o ApiError (status e "Invalid credentials"): nada de e-mail ou senha
-      console.error('Erro no login com senha:', err);
+      // 401 e 429 são respostas esperadas (credenciais ou limite), não falhas.
+      // O log leva só o erro, nunca o e-mail ou a senha
+      const expected =
+        err instanceof ApiError && (err.status === 401 || err.status === 429);
+      if (!expected) console.error('Erro no login com senha:', err);
       setError(passwordErrorMessage(err));
       if (err instanceof ApiError && err.status === 401) {
         passwordRef.current?.focus();
