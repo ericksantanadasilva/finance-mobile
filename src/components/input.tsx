@@ -5,6 +5,14 @@ import { Pressable, TextInput, View, type TextInputProps } from 'react-native';
 import { Icon } from '@/components/icon';
 import { Text } from '@/components/text';
 
+/** Botão de ícone à direita do campo (ex.: mostrar/ocultar senha). */
+export type InputAction = {
+  icon: LucideIcon;
+  /** Nome para o leitor de tela; o ícone sozinho não diz o que faz. */
+  label: string;
+  onPress: () => void;
+};
+
 export type InputProps = TextInputProps & {
   /** Ícone à esquerda (ex.: Search). Decorativo: use accessibilityLabel. */
   icon?: LucideIcon;
@@ -12,6 +20,8 @@ export type InputProps = TextInputProps & {
   prefix?: string;
   /** Mostra um X para apagar o texto quando houver valor. */
   onClear?: () => void;
+  /** Botão à direita, no lugar do X (vence o `onClear`). */
+  action?: InputAction;
   /** Campo com erro: contorno expense (aria-invalid do web). */
   invalid?: boolean;
 };
@@ -24,6 +34,7 @@ export function Input({
   icon,
   prefix,
   onClear,
+  action,
   invalid = false,
   value,
   editable = true,
@@ -32,7 +43,11 @@ export function Input({
 }: InputProps) {
   // placeholderTextColor é prop, não classe: lida do token
   const placeholder: unknown = useUnstableNativeVariable('--muted-foreground');
-  const showClear = !!onClear && !!value;
+  const rightAction: InputAction | undefined =
+    action ??
+    (onClear && value
+      ? { icon: X, label: 'apagar texto', onPress: onClear }
+      : undefined);
   // O recuo à esquerda sai daqui, numa classe só: um pl-* vindo da className
   // disputaria com este, e no NativeWind não vence o último da className
   const hasLeft = !!icon || !!prefix;
@@ -46,7 +61,7 @@ export function Input({
           typeof placeholder === 'string' ? placeholder : undefined
         }
         // py-0: o Android põe padding vertical próprio, que desalinha o texto no h-11
-        className={`h-11 rounded-xl border-2 ${invalid ? 'border-expense' : 'border-ink'} py-0 font-sans text-sm font-medium text-foreground ${hasLeft ? 'pl-11' : 'pl-4'} ${showClear ? 'pr-11' : 'pr-4'} ${editable ? 'bg-surface' : 'bg-surface-muted'} ${className ?? ''}`}
+        className={`h-11 rounded-xl border-2 ${invalid ? 'border-expense' : 'border-ink'} py-0 font-sans text-sm font-medium text-foreground ${hasLeft ? 'pl-11' : 'pl-4'} ${rightAction ? 'pr-11' : 'pr-4'} ${editable ? 'bg-surface' : 'bg-surface-muted'} ${className ?? ''}`}
         {...props}
       />
       {(icon || prefix) && (
@@ -62,15 +77,15 @@ export function Input({
           )}
         </View>
       )}
-      {showClear && (
+      {rightAction && (
         <Pressable
           accessibilityRole='button'
-          accessibilityLabel='apagar texto'
+          accessibilityLabel={rightAction.label}
           hitSlop={8}
-          onPress={onClear}
+          onPress={rightAction.onPress}
           className='absolute right-2 size-8 items-center justify-center rounded-lg'
         >
-          <Icon icon={X} tone='muted' />
+          <Icon icon={rightAction.icon} tone='muted' />
         </Pressable>
       )}
     </View>

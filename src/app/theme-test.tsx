@@ -3,6 +3,8 @@ import { Link } from 'expo-router';
 import {
   CircleArrowDown,
   CircleArrowUp,
+  Eye,
+  EyeOff,
   Target,
   Wallet,
 } from 'lucide-react-native';
@@ -491,10 +493,44 @@ export default function ThemeTest() {
       </AppText>
       <FormDemo />
 
+      <AppText variant='title' className='text-lg lowercase'>
+        10. senha (ação no input)
+      </AppText>
+      <PasswordDemo />
+
       <Link href='/' className='py-2 text-base text-foreground underline'>
         voltar
       </Link>
     </ScrollView>
+  );
+}
+
+/** Campo de senha com o botão de mostrar/ocultar (o mesmo do login). */
+function PasswordDemo() {
+  const [password, setPassword] = useState('');
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <Card>
+      <CardContent>
+        <FormField label='senha'>
+          <Input
+            accessibilityLabel='senha'
+            placeholder='••••••••'
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!visible}
+            autoCapitalize='none'
+            autoCorrect={false}
+            action={{
+              icon: visible ? EyeOff : Eye,
+              label: visible ? 'ocultar senha' : 'mostrar senha',
+              onPress: () => setVisible((v) => !v),
+            }}
+          />
+        </FormField>
+      </CardContent>
+    </Card>
   );
 }
 
