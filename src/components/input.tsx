@@ -1,5 +1,6 @@
 import { X, type LucideIcon } from 'lucide-react-native';
 import { useUnstableNativeVariable } from 'nativewind';
+import type { ComponentRef, Ref } from 'react';
 import { Pressable, TextInput, View, type TextInputProps } from 'react-native';
 
 import { Icon } from '@/components/icon';
@@ -14,6 +15,8 @@ export type InputAction = {
 };
 
 export type InputProps = TextInputProps & {
+  /** Repassado ao TextInput (ex.: focar o próximo campo). */
+  ref?: Ref<ComponentRef<typeof TextInput>>;
   /** Ícone à esquerda (ex.: Search). Decorativo: use accessibilityLabel. */
   icon?: LucideIcon;
   /** Texto fixo à esquerda (ex.: "R$"), no lugar do ícone. */

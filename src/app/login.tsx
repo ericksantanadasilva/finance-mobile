@@ -3,9 +3,10 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import { Link } from 'expo-router';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { useUnstableNativeVariable } from 'nativewind';
-import { useState } from 'react';
-import { View } from 'react-native';
+import { useRef, useState, type ComponentRef } from 'react';
+import { View, type TextInput } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import { BrandLogo } from '@/components/brand-logo';
@@ -13,13 +14,15 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { CenteredScreen } from '@/components/centered-screen';
 import { ErrorBox } from '@/components/error-box';
+import { FormField } from '@/components/form-field';
+import { Input } from '@/components/input';
 import { LoginBlobs } from '@/components/login-blobs';
 import { Text } from '@/components/text';
 import { ApiError } from '@/lib/api';
 import { useSession } from '@/lib/session-context';
 
 /** Mensagem para o usuário a partir do erro do Google ou da API. */
-function loginErrorMessage(error: unknown) {
+function googleErrorMessage(error: unknown) {
   if (error instanceof ApiError) {
     if (error.status === 0) return error.message; // sem rede / tempo esgotado
     if (error.status === 401)
@@ -38,13 +41,64 @@ function loginErrorMessage(error: unknown) {
   return 'Não foi possível entrar com o Google.';
 }
 
-export default function Login() {
-  const { signIn } = useSession();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+/** 429: o Retry-After vem em segundos; a mensagem arredonda para minutos. */
+function tooManyAttemptsMessage(retryAfterSeconds?: number) {
+  if (retryAfterSeconds === undefined) {
+    return 'Muitas tentativas. Tente de novo mais tarde.';
+  }
+  const minutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
+  return `Muitas tentativas. Tente de novo em ${minutes} ${minutes === 1 ? 'minuto' : 'minutos'}.`;
+}
 
-  async function handleSignIn() {
-    setLoading(true);
+// Mensagem do 401: só ela marca os dois campos como inválidos (como no web)
+const INVALID_CREDENTIALS = 'E-mail ou senha incorretos.';
+
+/** Mensagem para o usuário a partir do erro do login por e-mail e senha. */
+function passwordErrorMessage(error: unknown) {
+  if (!(error instanceof ApiError)) return 'Não foi possível entrar.';
+  switch (error.status) {
+    case 0:
+      return error.message; // sem rede / tempo esgotado
+    case 400:
+      return 'Confira o e-mail e a senha.';
+    case 401:
+      return INVALID_CREDENTIALS;
+    case 429:
+      return tooManyAttemptsMessage(error.retryAfterSeconds);
+    default:
+      return 'Erro no servidor. Tente de novo em instantes.';
+  }
+}
+
+// Só o formato básico; quem decide se o e-mail existe é o servidor
+const EMAIL_FORMAT = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type FieldErrors = { email?: string; password?: string };
+
+function checkCredentials(email: string, password: string): FieldErrors {
+  const errors: FieldErrors = {};
+  if (!email) errors.email = 'Informe o e-mail.';
+  else if (!EMAIL_FORMAT.test(email)) errors.email = 'E-mail inválido.';
+  if (!password) errors.password = 'Informe a senha.';
+  return errors;
+}
+
+export default function Login() {
+  const { signIn, signInWithPassword } = useSession();
+  const [pending, setPending] = useState<'google' | 'password' | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const passwordRef = useRef<ComponentRef<typeof TextInput>>(null);
+
+  const busy = pending !== null;
+  const credentialsInvalid = error === INVALID_CREDENTIALS;
+
+  async function handleGoogle() {
+    if (busy) return;
+    setPending('google');
     setError(null);
     try {
       // Se der certo, o Stack.Protected troca para a tela da sessão sozinho
@@ -53,9 +107,32 @@ export default function Login() {
       // Toque duplo enquanto a janela do Google já está aberta: não é erro
       if (isErrorWithCode(err) && err.code === statusCodes.IN_PROGRESS) return;
       console.error('Erro no login:', err);
-      setError(loginErrorMessage(err));
+      setError(googleErrorMessage(err));
     } finally {
-      setLoading(false);
+      setPending(null);
+    }
+  }
+
+  async function handlePassword() {
+    if (busy) return;
+    const trimmedEmail = email.trim();
+    const errors = checkCredentials(trimmedEmail, password);
+    setFieldErrors(errors);
+    setError(null);
+    if (errors.email || errors.password) return;
+
+    setPending('password');
+    try {
+      await signInWithPassword(trimmedEmail, password);
+    } catch (err) {
+      // Só o ApiError (status e "Invalid credentials"): nada de e-mail ou senha
+      console.error('Erro no login com senha:', err);
+      setError(passwordErrorMessage(err));
+      if (err instanceof ApiError && err.status === 401) {
+        passwordRef.current?.focus();
+      }
+    } finally {
+      setPending(null);
     }
   }
 
@@ -80,17 +157,100 @@ export default function Login() {
           </View>
         </View>
 
+        {/* Secundário (outline), como no web; o rótulo na cor do texto, com o ícone */}
         <Button
+          variant='outline'
           size='lg'
-          disabled={loading}
-          accessibilityState={{ disabled: loading, busy: loading }}
-          onPress={handleSignIn}
+          disabled={busy}
+          accessibilityState={{ disabled: busy, busy: pending === 'google' }}
+          onPress={handleGoogle}
         >
           <GoogleIcon />
-          {loading ? 'entrando...' : 'entrar com google'}
+          <Text numberOfLines={1} className='text-sm font-bold lowercase'>
+            {pending === 'google' ? 'entrando...' : 'entrar com google'}
+          </Text>
         </Button>
 
-        {error && <ErrorBox message={error} />}
+        <View className='flex-row items-center gap-3'>
+          <View className='h-px flex-1 bg-border-custom' />
+          <Text tone='muted' className='text-xs font-medium lowercase'>
+            ou
+          </Text>
+          <View className='h-px flex-1 bg-border-custom' />
+        </View>
+
+        <View className='gap-4'>
+          <FormField label='e-mail' error={fieldErrors.email}>
+            <Input
+              accessibilityLabel='e-mail'
+              placeholder='seu@email.com'
+              value={email}
+              maxLength={254}
+              invalid={!!fieldErrors.email || credentialsInvalid}
+              keyboardType='email-address'
+              autoComplete='email'
+              // "username" liga o e-mail à senha no gerenciador de senhas do iOS
+              textContentType='username'
+              autoCapitalize='none'
+              autoCorrect={false}
+              returnKeyType='next'
+              // Não fecha o teclado ao ir para a senha
+              submitBehavior='submit'
+              onSubmitEditing={() => passwordRef.current?.focus()}
+              onChangeText={(text) => {
+                setEmail(text);
+                setFieldErrors((e) => ({ ...e, email: undefined }));
+              }}
+            />
+          </FormField>
+
+          <FormField label='senha' error={fieldErrors.password}>
+            <Input
+              ref={passwordRef}
+              accessibilityLabel='senha'
+              placeholder='••••••••'
+              value={password}
+              maxLength={256}
+              invalid={!!fieldErrors.password || credentialsInvalid}
+              secureTextEntry={!passwordVisible}
+              autoComplete='current-password'
+              textContentType='password'
+              autoCapitalize='none'
+              autoCorrect={false}
+              returnKeyType='go'
+              // Rótulo da tecla só existe no Android; no iOS fica "Ir"
+              returnKeyLabel='entrar'
+              onSubmitEditing={handlePassword}
+              onChangeText={(text) => {
+                setPassword(text);
+                setFieldErrors((e) => ({ ...e, password: undefined }));
+              }}
+              action={{
+                icon: passwordVisible ? EyeOff : Eye,
+                label: passwordVisible ? 'ocultar senha' : 'mostrar senha',
+                onPress: () => setPasswordVisible((v) => !v),
+              }}
+            />
+          </FormField>
+
+          <Button
+            size='lg'
+            disabled={busy}
+            accessibilityState={{
+              disabled: busy,
+              busy: pending === 'password',
+            }}
+            onPress={handlePassword}
+          >
+            {pending === 'password' ? 'entrando...' : 'entrar'}
+          </Button>
+
+          {error && <ErrorBox message={error} />}
+        </View>
+
+        <Text tone='muted' className='text-center text-xs font-medium'>
+          Criou a conta com o Google? Use o botão acima.
+        </Text>
       </Card>
 
       {/* Provisório (Etapa 3) */}
