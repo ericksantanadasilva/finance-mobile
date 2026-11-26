@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ScrollView, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // p-6 do conteúdo somado às áreas do sistema
@@ -35,23 +35,28 @@ export function CenteredScreen({ children, decoration }: CenteredScreenProps) {
           {decoration}
         </View>
       )}
-      <ScrollView
-        className='flex-1'
-        // Tudo no style (sem contentContainerClassName): o padding depende dos insets
-        contentContainerStyle={{
-          flexGrow: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 16,
-          paddingTop: insets.top + PADDING,
-          paddingBottom: insets.bottom + PADDING,
-          paddingLeft: insets.left + PADDING,
-          paddingRight: insets.right + PADDING,
-        }}
-        keyboardShouldPersistTaps='handled'
-      >
-        {children}
-      </ScrollView>
+      {/* Como no FormScreen: no Android edge-to-edge a janela não encolhe com
+          o teclado, então o padding abre o espaço. Fora da decoração, para as
+          formas do fundo não se moverem */}
+      <KeyboardAvoidingView behavior='padding' className='flex-1'>
+        <ScrollView
+          className='flex-1'
+          // Tudo no style (sem contentContainerClassName): o padding depende dos insets
+          contentContainerStyle={{
+            flexGrow: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 16,
+            paddingTop: insets.top + PADDING,
+            paddingBottom: insets.bottom + PADDING,
+            paddingLeft: insets.left + PADDING,
+            paddingRight: insets.right + PADDING,
+          }}
+          keyboardShouldPersistTaps='handled'
+        >
+          {children}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </View>
   );
 }
